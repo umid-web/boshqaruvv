@@ -222,4 +222,5 @@ DEMO ma’lumotlar `localStorage` da (`edu-activity-v1`, `edu-notifications-v1`)
 qo‘ng‘iroqcha uchun esa WebSocket/SSE ga almashtiriladi — sahifalar va do‘konlarga ulanishlar o‘zgarmaydi.
 Birinchi ochilishdagi namunaviy yozuvlar `demo: true` bilan belgilangan (`demoSeed()`).
 #   b o s h q a r u v v  
+ #   b o s h q a r u v  
  
