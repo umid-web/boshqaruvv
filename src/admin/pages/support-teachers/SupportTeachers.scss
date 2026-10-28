@@ -1,0 +1,8 @@
+// Umumiy uslublar students/Students.scss va teachers/Teachers.scss da (SupportTeachers.jsx ularni ham ulaydi).
+// Bu yerda faqat shu bo‘limga xos qo‘shimchalar.
+
+// Rol belgisi: admin.scss da faqat success/warning/danger/info/muted bor
+.badge--primary {
+  background: var(--primary-soft);
+  color: var(--primary);
+}

@@ -1,0 +1,37 @@
+@use '../styles/variables' as *;
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: $radius-md;
+  box-shadow: var(--shadow-sm);
+  min-width: 0; // grid ichida grafik "tashib" yubormasligi uchun
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: $spacing-sm;
+    padding: 1.1rem 1.25rem 0;
+  }
+
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  &__subtitle {
+    margin-top: 0.15rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  &__body {
+    padding: 1.1rem 1.25rem 1.25rem;
+  }
+}

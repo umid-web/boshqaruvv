@@ -1,0 +1,28 @@
+@use '../../styles/variables' as *;
+
+.att-date { align-items: center; .input { width: auto; } }
+.att-layout { display: grid; grid-template-columns: 290px minmax(0, 1fr); gap: $spacing-md; align-items: start; @include respond($bp-lg) { grid-template-columns: 1fr; } }
+.att-main { display: flex; flex-direction: column; gap: $spacing-md; min-width: 0; .students-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); @include respond($bp-md) { grid-template-columns: repeat(2, minmax(0, 1fr)); } } }
+.att-groups { display: flex; flex-direction: column; gap: $spacing-sm; @include respond($bp-lg) { flex-direction: row; overflow-x: auto; padding-bottom: 4px; } }
+.att-group {
+  display: flex; flex-direction: column; gap: 0.35rem; min-width: 230px; padding: 0.85rem 1rem; text-align: left;
+  border: 1px solid var(--border); border-radius: $radius-md; background: var(--surface); color: var(--text); cursor: pointer; transition: all $transition-base;
+  &:hover { border-color: var(--primary); }
+  &.is-active { border-color: var(--primary); background: var(--primary-soft); box-shadow: var(--shadow-sm); }
+  &__top { display: flex; justify-content: space-between; align-items: center; }
+  &__meta { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.82rem; color: var(--text-muted); }
+}
+.att-note { display: flex; gap: 0.5rem; align-items: center; margin: 0 $spacing-md $spacing-sm; padding: 0.6rem 0.8rem; border-radius: $radius-sm; background: var(--warning-soft); color: var(--warning); font-size: 0.85rem; }
+.att-progress { font-size: 0.85rem; color: var(--text-muted); white-space: nowrap; }
+.att-student { display: flex; align-items: center; gap: 0.7rem; div { display: flex; flex-direction: column; line-height: 1.3; } }
+.att-debt { display: block; margin-top: 0.2rem; font-size: 0.8rem; }
+.att-marks { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+.att-mark {
+  display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.35rem 0.6rem; border: 1px solid var(--border); border-radius: 999px;
+  background: var(--surface); color: var(--text-muted); font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: all $transition-base;
+  @include respond($bp-sm) { span { display: none; } }
+  @each $tone in success, warning, info, danger {
+    &--#{$tone}:hover { color: var(--#{$tone}); border-color: var(--#{$tone}); }
+    &--#{$tone}.is-on { color: var(--#{$tone}); background: var(--#{$tone}-soft); border-color: var(--#{$tone}); font-weight: 600; }
+  }
+}

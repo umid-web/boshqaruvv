@@ -1,0 +1,15 @@
+.avatar {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 50%;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  user-select: none;
+
+  &--primary { background: var(--primary-soft); color: var(--primary); }
+  &--success { background: var(--success-soft); color: var(--success); }
+  &--warning { background: var(--warning-soft); color: var(--warning); }
+  &--info    { background: var(--info-soft);    color: var(--info); }
+  &--danger  { background: var(--danger-soft);  color: var(--danger); }
+}

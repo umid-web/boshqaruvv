@@ -1,0 +1,57 @@
+@use '../styles/variables' as *;
+
+.dashboard-page {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+
+  .section-title {
+    margin-bottom: $spacing-sm;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.2rem;
+
+  // 8 ta karta: 4×2 (keng), 2×4 (o‘rta), 1×8 (mobil) — "yetim" qator qolmaydi
+  @media (min-width: 1360px) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  @media (max-width: 620px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+// 12 ustunli grid
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: $spacing-md;
+  align-items: start;
+
+  .span-8 { grid-column: span 8; }
+  .span-6 { grid-column: span 6; }
+  .span-4 { grid-column: span 4; }
+
+  @include respond($bp-lg) {
+    .span-8,
+    .span-6,
+    .span-4 {
+      grid-column: 1 / -1;
+    }
+  }
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}

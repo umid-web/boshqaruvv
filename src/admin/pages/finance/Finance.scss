@@ -1,0 +1,41 @@
+@use '../../styles/variables' as *;
+
+.fin-tabs { display: flex; gap: 0.25rem; overflow-x: auto; border-bottom: 1px solid var(--border); }
+.fin-tab {
+  display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.7rem 1rem; margin-bottom: -1px; border-bottom: 2px solid transparent;
+  color: var(--text-muted); font-size: 0.9rem; font-weight: 500; text-decoration: none; white-space: nowrap; transition: all $transition-base;
+  &:hover { color: var(--text); }
+  &.is-active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
+}
+.fin-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: $spacing-md; @include respond($bp-md) { grid-template-columns: 1fr; } }
+.fin-chart { height: 280px; }
+.fin-list, .fin-split { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.8rem; }
+.fin-list li { display: flex; justify-content: space-between; align-items: center; gap: 1rem; div { display: flex; flex-direction: column; line-height: 1.35; } }
+.fin-split li > div { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 0.3rem; }
+.fin-bar { display: block; height: 6px; border-radius: 99px; background: var(--surface-2); span { display: block; height: 100%; border-radius: 99px; background: var(--primary); } }
+.fin-plus { color: var(--success); font-weight: 600; font-variant-numeric: tabular-nums; }
+.fin-more { display: block; margin: $spacing-sm auto; }
+.fin-form { display: flex; flex-direction: column; gap: 0.9rem; label { display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.85rem; font-weight: 500; color: var(--text-muted); } }
+.fin-hint { padding: 0.6rem 0.8rem; border-radius: $radius-sm; background: var(--primary-soft); color: var(--text); font-size: 0.85rem; }
+
+.fin-grid--exp { grid-template-columns: minmax(0, 1fr) 320px; align-items: start; @include respond($bp-lg) { grid-template-columns: 1fr; } }
+.fin-note { display: block; font-size: 0.8rem; }
+.fin-actions { display: flex; gap: 0.35rem; justify-content: flex-end; }
+.sort-btn { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0; border: 0; background: none; color: inherit; font: inherit; font-weight: 600; cursor: pointer; }
+.fin-receipt { margin: 0; display: flex; flex-direction: column; gap: 0.7rem; div { display: flex; justify-content: space-between; gap: 1rem; padding-bottom: 0.6rem; border-bottom: 1px dashed var(--border); } dt { color: var(--text-muted); } dd { margin: 0; font-weight: 600; } &__total { border-bottom: 0 !important; dd { color: var(--success); font-size: 1.2rem; } } }
+
+.sal-calc { display: flex; flex-direction: column; line-height: 1.35; em { font-style: normal; font-weight: 600; } }
+.sal-plus { color: var(--success); font-style: normal; font-variant-numeric: tabular-nums; }
+.sal-paid { display: block; margin-top: 0.3rem; font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+.sal-progress { height: 8px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
+.sal-progress__bar { display: block; height: 100%; border-radius: 99px; transition: width 0.4s ease;
+  &--paid { background: linear-gradient(90deg, var(--success), color-mix(in srgb, var(--success) 70%, white)); }
+  &--partial { background: linear-gradient(90deg, var(--warning), color-mix(in srgb, var(--warning) 70%, white)); }
+  &--unpaid { background: var(--danger); } }
+.sal-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; div { display: flex; flex-direction: column; padding: 0.6rem 0.7rem; border-radius: $radius-sm; background: var(--surface-2); span { font-size: 0.75rem; color: var(--text-muted); } strong { font-size: 0.9rem; font-variant-numeric: tabular-nums; } } }
+.sal-history { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.9rem;
+  li { display: grid; grid-template-columns: 10px 1fr auto auto; align-items: center; gap: 0.8rem; div { display: flex; flex-direction: column; line-height: 1.35; } } }
+.sal-dot { width: 10px; height: 10px; border-radius: 50%; @each $t in success, info, primary, danger { &--#{$t} { background: var(--#{$t}); } } }
+.fin-hint--warn { background: var(--warning-soft); color: var(--warning); }
+
+.sal-person { display: flex; align-items: center; gap: 0.7rem; div { display: flex; flex-direction: column; line-height: 1.3; } }

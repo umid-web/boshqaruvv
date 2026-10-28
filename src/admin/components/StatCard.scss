@@ -1,0 +1,80 @@
+@use '../styles/variables' as *;
+
+.stat-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+  padding: 1.05rem 1.1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: $radius-md;
+  box-shadow: var(--shadow-sm);
+  transition:
+    transform $transition-base,
+    box-shadow $transition-base;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  &__icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+
+    &--primary { background: var(--primary-soft); color: var(--primary); }
+    &--success { background: var(--success-soft); color: var(--success); }
+    &--info    { background: var(--info-soft);    color: var(--info); }
+    &--warning { background: var(--warning-soft); color: var(--warning); }
+    &--danger  { background: var(--danger-soft);  color: var(--danger); }
+  }
+
+  &__info {
+    min-width: 0;
+  }
+
+  &__title {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+
+  &__value {
+    margin-top: 0.1rem;
+    font-size: 1.4rem;
+    white-space: nowrap;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    color: var(--text);
+  }
+
+  &__unit {
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--text-muted);
+  }
+
+  &__change {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-top: 0.3rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+
+    &.is-good { color: var(--success); }
+    &.is-bad  { color: var(--danger); }
+  }
+
+  &__hint {
+    font-weight: 400;
+    color: var(--text-muted);
+  }
+}

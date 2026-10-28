@@ -1,0 +1,553 @@
+@use '../../styles/variables' as *;
+
+.students-page {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: $spacing-sm $spacing-md;
+
+  h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  p {
+    margin-top: 0.15rem;
+    font-size: 0.92rem;
+    color: var(--text-muted);
+  }
+
+  &__actions {
+    display: flex;
+    gap: $spacing-sm;
+  }
+}
+
+.students-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: $spacing-md;
+
+  @include respond($bp-lg) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  @include respond($bp-sm) { grid-template-columns: 1fr; }
+}
+
+.students-card .card__body {
+  padding: 0;
+}
+
+/* ============ Toolbar ============ */
+.toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+
+  &__filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $spacing-sm;
+
+    .input {
+      width: auto;
+      min-width: 150px;
+    }
+
+    @include respond($bp-sm) {
+      .input { flex: 1 1 100%; }
+    }
+  }
+
+  &__search {
+    position: relative;
+    flex: 1 1 260px;
+
+    .input {
+      width: 100%;
+      padding-left: 2.4rem;
+    }
+  }
+
+  &__search-icon {
+    position: absolute;
+    top: 50%;
+    left: 0.8rem;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+}
+
+.status-tabs {
+  display: flex;
+  gap: 0.25rem;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.status-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all $transition-base;
+
+  &:hover { color: var(--text); background: var(--surface-2); }
+
+  &.is-active {
+    background: var(--primary-soft);
+    color: var(--primary);
+    font-weight: 600;
+  }
+
+  &__count {
+    padding: 0 0.45rem;
+    border-radius: 999px;
+    background: var(--surface-2);
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &.is-active &__count {
+    background: var(--primary);
+    color: var(--on-primary);
+  }
+}
+
+/* ============ Tanlanganlar paneli ============ */
+.bulk-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-sm;
+  padding: 0.6rem 1.25rem;
+  background: var(--primary-soft);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.88rem;
+  color: var(--text);
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+}
+
+/* ============ Jadval ============ */
+.table-wrap {
+  position: relative; // sr-only elementlar scroll konteyneri ichida qolishi uchun
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+
+  th {
+    padding: 0.7rem 0.7rem;
+    text-align: left;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--text-muted);
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 0.65rem 0.7rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    transition: background-color $transition-base;
+
+    &:hover td { background: var(--surface-2); }
+    &.is-selected td { background: var(--primary-soft); }
+    &:last-child td { border-bottom: 0; }
+  }
+
+  .is-right { text-align: right; }
+
+  &__check {
+    width: 44px;
+    padding-right: 0;
+    padding-left: 1.25rem;
+    box-sizing: content-box;
+  }
+
+  &__actions {
+    width: 44px;
+    padding-right: 1rem;
+    text-align: right;
+    box-sizing: content-box;
+  }
+
+  &__muted {
+    color: var(--text-muted);
+  }
+
+  // Ustunlar ekran kengligiga qarab yashiriladi (ma'lumotlarning hammasi profil panelida bor):
+  // col-xl — qo‘shilgan sana, col-lg — telefon, col-md — to‘lov holati, col-sm — kurs/guruh
+  @media (max-width: 1500px) { .col-xl { display: none; } }
+  @media (max-width: 1280px) { .col-lg { display: none; } }
+  @media (max-width: 1100px) { .col-md { display: none; } }
+  @media (max-width: 640px) { .col-sm { display: none; } }
+}
+
+.sort-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+
+  svg { opacity: 0.55; }
+
+  &:hover,
+  &.is-active { color: var(--text); }
+  &.is-active svg { opacity: 1; color: var(--primary); }
+}
+
+.student-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+
+  &__text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.3;
+  }
+
+  &__name {
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  &:hover &__name { color: var(--primary); }
+
+  &__id {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.two-line {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+
+  span:last-child { font-size: 0.8rem; }
+}
+
+.debt {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--danger);
+  white-space: nowrap;
+}
+
+/* ============ Bo‘sh holat ============ */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: $spacing-xl $spacing-md;
+  text-align: center;
+
+  &__icon {
+    display: grid;
+    place-items: center;
+    width: 60px;
+    height: 60px;
+    margin-bottom: 0.4rem;
+    border-radius: 18px;
+    background: var(--primary-soft);
+    color: var(--primary);
+  }
+
+  h3 { font-size: 1.05rem; font-weight: 600; }
+
+  p {
+    max-width: 380px;
+    margin-bottom: 0.6rem;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+  }
+}
+
+/* ============ Forma ============ */
+.student-form {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+
+  &__section {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+
+    legend {
+      grid-column: 1 / -1;
+      width: 100%;
+      margin-bottom: 0.2rem;
+      padding: 0 0 0.5rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    @include respond($bp-sm) { grid-template-columns: 1fr; }
+  }
+
+  &__wide {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ============ Profil paneli ============ */
+.profile {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+
+  &__hero {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  &__name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  &__meta {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 0.3rem;
+  }
+
+  &__id {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__kpis {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: $spacing-sm;
+  }
+
+  &__kpi {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 0.75rem 0.85rem;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: $radius-md;
+
+    span { font-size: 0.75rem; color: var(--text-muted); }
+    strong { font-size: 0.95rem; font-variant-numeric: tabular-nums; }
+  }
+
+  &__bar {
+    height: 6px;
+    margin-top: -0.4rem;
+    border-radius: 999px;
+    background: var(--surface-2);
+    overflow: hidden;
+
+    span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+    }
+  }
+
+  &__section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+
+    h4 {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+
+      .badge { text-transform: none; letter-spacing: 0; }
+    }
+  }
+
+  &__row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  &__row-icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    background: var(--surface-2);
+    color: var(--text-muted);
+  }
+
+  &__row-label { font-size: 0.75rem; color: var(--text-muted); }
+  &__row-value { font-size: 0.9rem; font-weight: 500; }
+
+  &__note {
+    padding: 0.75rem 0.9rem;
+    border-radius: $radius-sm;
+    background: var(--warning-soft);
+    color: var(--text);
+    font-size: 0.88rem;
+    line-height: 1.55;
+  }
+
+  &__payments {
+    display: flex;
+    flex-direction: column;
+
+    li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: $spacing-sm;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.88rem;
+
+      &:last-child { border-bottom: 0; }
+
+      > div { display: flex; flex-direction: column; line-height: 1.35; }
+      span { font-size: 0.78rem; color: var(--text-muted); }
+    }
+
+    &-sum {
+      align-items: flex-end;
+      font-variant-numeric: tabular-nums;
+    }
+  }
+}
+
+/* ============ Yangi talaba: to‘lov hisobi ============ */
+.billing {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: $radius-md;
+  background: var(--surface-2);
+
+  &__head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.2rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  &__row {
+    display: flex;
+    justify-content: space-between;
+    gap: $spacing-sm;
+    font-size: 0.88rem;
+    color: var(--text-muted);
+
+    strong {
+      color: var(--text);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    &--total {
+      margin-top: 0.2rem;
+      padding-top: 0.6rem;
+      border-top: 1px dashed var(--border);
+      font-size: 0.95rem;
+      color: var(--text);
+
+      strong { color: var(--danger); font-size: 1.02rem; }
+    }
+  }
+
+  &__note {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4rem;
+    margin-top: 0.2rem;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: var(--text-muted);
+
+    svg { flex-shrink: 0; margin-top: 2px; }
+  }
+}

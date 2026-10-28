@@ -1,0 +1,197 @@
+@use '../styles/variables' as *;
+
+// Bildirishnomalar va Faoliyat tarixi sahifalari uchun umumiy bloklar.
+// Boshqa sahifalar stiliga bog‘liq emas (ular lazy yuklanadi), shuning uchun alohida prefiks (.pk-).
+
+.pk-page {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.pk-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: $spacing-sm $spacing-md;
+
+  h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  p {
+    margin-top: 0.15rem;
+    font-size: 0.92rem;
+    color: var(--text-muted);
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $spacing-sm;
+  }
+}
+
+.pk-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: $spacing-md;
+
+  @include respond($bp-lg) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  @include respond($bp-sm) { grid-template-columns: 1fr; }
+}
+
+.pk-card .card__body {
+  padding: 0;
+}
+
+.pk-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-sm;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+
+  &__filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: $spacing-xs;
+
+    .input {
+      width: auto;
+      min-width: 150px;
+    }
+  }
+
+  &__search {
+    position: relative;
+
+    .input {
+      width: 260px;
+      padding-left: 2.3rem;
+
+      @include respond($bp-sm) { width: 100%; }
+    }
+
+    @include respond($bp-sm) { width: 100%; }
+  }
+
+  &__search-icon {
+    position: absolute;
+    top: 50%;
+    left: 0.8rem;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+}
+
+.pk-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.pk-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  height: 34px;
+  padding: 0 0.85rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.86rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all $transition-base;
+
+  &:hover { color: var(--text); background: var(--surface-2); }
+  &.is-active { background: var(--primary-soft); color: var(--primary); }
+
+  &__count {
+    min-width: 20px;
+    padding: 0 0.35rem;
+    border-radius: 999px;
+    background: var(--surface-2);
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 20px;
+    text-align: center;
+  }
+
+  &.is-active &__count { background: var(--primary); color: var(--on-primary); }
+}
+
+.pk-bulk {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-sm;
+  padding: 0.6rem 1.25rem;
+  background: var(--primary-soft);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.88rem;
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $spacing-xs;
+  }
+}
+
+.pk-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: $spacing-xl $spacing-md;
+  text-align: center;
+
+  &__icon {
+    display: grid;
+    place-items: center;
+    width: 60px;
+    height: 60px;
+    margin-bottom: 0.4rem;
+    border-radius: 18px;
+    background: var(--primary-soft);
+    color: var(--primary);
+  }
+
+  h3 { font-size: 1.05rem; font-weight: 600; }
+
+  p {
+    max-width: 380px;
+    margin-bottom: 0.6rem;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+  }
+}
+
+.pk-tone {
+  &--primary { background: var(--primary-soft); color: var(--primary); }
+  &--success { background: var(--success-soft); color: var(--success); }
+  &--warning { background: var(--warning-soft); color: var(--warning); }
+  &--danger  { background: var(--danger-soft);  color: var(--danger); }
+  &--info    { background: var(--info-soft);    color: var(--info); }
+  &--muted   { background: var(--surface-2);    color: var(--text-muted); }
+}
+
+.pk-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+}

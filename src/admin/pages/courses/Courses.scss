@@ -1,0 +1,239 @@
+@use '../../styles/variables' as *;
+
+// Umumiy uslublar (toolbar, status-tabs, profil paneli, forma, bo‘sh holat) students/Students.scss da.
+// Bu yerda faqat kurslar sahifasiga xos elementlar.
+
+$course-colors: primary, success, warning, danger;
+
+/* ============ Toolbar (kartasiz) ============ */
+.courses-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-sm $spacing-md;
+
+  .toolbar__filters {
+    flex: 1 1 380px;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+
+    .toolbar__search { flex: 1 1 200px; max-width: 320px; }
+    .input { min-width: 0; }
+
+    @include respond($bp-sm) {
+      flex-wrap: wrap;
+      .toolbar__search { max-width: none; flex-basis: 100%; }
+    }
+  }
+}
+
+.courses-warning {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: $radius-md;
+  background: var(--warning-soft);
+  color: var(--warning);
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.courses-empty {
+  border: 1px solid var(--border);
+  border-radius: $radius-lg;
+  background: var(--surface);
+}
+
+/* ============ Kurs kartalari ============ */
+.course-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: $spacing-md;
+
+  @include respond($bp-lg) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  @include respond($bp-sm) { grid-template-columns: 1fr; }
+}
+
+.course-card {
+  --accent-color: var(--primary);
+  --accent-soft: var(--primary-soft);
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 1.1rem 1.2rem 1.2rem;
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--accent-color);
+  border-radius: $radius-lg;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow $transition-base, transform $transition-base;
+
+  &:hover { box-shadow: var(--shadow-md); }
+  &.is-archived { opacity: 0.7; border-top-color: var(--border); }
+
+  @each $name in $course-colors {
+    &--#{$name} {
+      --accent-color: var(--#{$name});
+      --accent-soft: var(--#{$name}-soft);
+    }
+  }
+
+  &__head {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  &__icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--accent-soft);
+    color: var(--accent-color);
+  }
+
+  &__title {
+    flex: 1;
+    min-width: 0;
+
+    h3 { font-size: 1rem; font-weight: 700; }
+
+    h3 button {
+      max-width: 100%;
+      padding: 0;
+      border: 0;
+      background: none;
+      color: var(--text);
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+
+      &:hover { color: var(--accent-color); }
+    }
+
+    span { font-size: 0.78rem; color: var(--text-muted); }
+  }
+
+  &__desc {
+    display: -webkit-box;
+    min-height: 3.9em;
+    overflow: hidden;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--text-muted);
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+  }
+
+  &__meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+
+    span:first-child { display: inline-flex; align-items: center; gap: 0.35rem; }
+  }
+
+  &__price {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 0.6rem 0.8rem;
+    border-radius: $radius-md;
+    background: var(--accent-soft);
+    font-size: 0.82rem;
+    color: var(--text-muted);
+
+    strong {
+      font-size: 1.02rem;
+      color: var(--accent-color);
+      font-variant-numeric: tabular-nums;
+    }
+  }
+
+  &__stats {
+    display: grid;
+    grid-template-columns: auto auto auto;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding-top: 0.8rem;
+    border-top: 1px solid var(--border);
+
+    dt {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    dd {
+      margin-top: 0.15rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+  }
+}
+
+/* ============ Formadagi rang tanlash ============ */
+.color-picker {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  height: 40px;
+}
+
+.color-dot {
+  width: 26px;
+  height: 26px;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  outline-offset: 2px;
+  transition: transform $transition-base;
+
+  &:hover { transform: scale(1.1); }
+  &.is-active { border-color: var(--text); box-shadow: 0 0 0 2px var(--surface) inset; }
+
+  @each $name in $course-colors {
+    &--#{$name} { background: var(--#{$name}); }
+  }
+}
+
+/* ============ Profil paneli ============ */
+.course-hero-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+
+  @each $name in $course-colors {
+    &--#{$name} { background: var(--#{$name}-soft); color: var(--#{$name}); }
+  }
+}
+
+.topic-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding-left: 1.2rem;
+  font-size: 0.9rem;
+  list-style: decimal;
+
+  li::marker { color: var(--text-muted); font-weight: 600; }
+}

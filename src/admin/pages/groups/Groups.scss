@@ -1,0 +1,61 @@
+@use '../../styles/variables' as *;
+
+// Jadval, forma, profil va boshqa umumiy uslublar students/Students.scss va teachers/Teachers.scss da.
+// Bu yerda faqat guruhlar sahifasiga xos elementlar.
+
+.group-badge {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.profile__hero .group-badge {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  font-size: 0.95rem;
+}
+
+.groups-page .data-table td.is-full { color: var(--danger); font-weight: 600; }
+
+/* ============ Profil: ustozlar jamoasi ============ */
+.team-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.team-row {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: $radius-md;
+  background: var(--surface-2);
+
+  &__text {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+    gap: 0.1rem;
+
+    strong { font-size: 0.88rem; }
+    span { font-size: 0.78rem; color: var(--text-muted); }
+  }
+
+  &__phone {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+}

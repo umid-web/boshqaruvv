@@ -1,0 +1,358 @@
+@use './variables' as *;
+
+/* ============ Design tokens ============ */
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+
+  // Asosiy palitra: ko‘k · yashil · to‘q sariq · oq
+  --bg: #f5f8fc;
+  --surface: #ffffff;
+  --surface-2: #f6f9fd;
+  --border: #e3e9f2;
+  --text: #0f1f38;
+  --text-muted: #5f6f86;
+
+  --primary: #1d6fe0;
+  --primary-hover: #155bbd;
+  --primary-soft: #e8f1fd;
+  --on-primary: #ffffff;
+
+  --success: #15803d;
+  --success-soft: #e5f6ec;
+  --warning: #c2570c;
+  --warning-soft: #fff0e0;
+  --accent: #f97316;
+  --danger: #b91c1c;
+  --danger-soft: #fde8e8;
+  --info: #1d6fe0;
+  --info-soft: #e8f1fd;
+
+  --sidebar-bg: #ffffff;
+  --sidebar-text: #5f6f86;
+  --sidebar-text-active: #0f1f38;
+  --sidebar-hover: #eef4fd;
+  --sidebar-active: #1d6fe0;
+  --sidebar-border: #e3e9f2;
+
+  --chart-1: #1d6fe0;
+  --chart-2: #22a559;
+  --chart-3: #f97316;
+  --chart-4: #ef4444;
+  --chart-5: #6aa9f5;
+
+  --shadow-sm: 0 1px 2px rgba(15, 31, 56, 0.05);
+  --shadow-md: 0 4px 16px rgba(15, 31, 56, 0.09);
+  --overlay: rgba(15, 31, 56, 0.45);
+  --shadow-lg: 0 18px 48px rgba(15, 31, 56, 0.18);
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #0b1424;
+  --surface: #121d31;
+  --surface-2: #17243b;
+  --border: #233450;
+  --text: #e8eef8;
+  --text-muted: #93a3bb;
+
+  --primary: #5aa0ff;
+  --primary-hover: #7db5ff;
+  --primary-soft: rgba(90, 160, 255, 0.16);
+  --on-primary: #06121f;
+
+  --success: #4ade80;
+  --success-soft: rgba(74, 222, 128, 0.14);
+  --warning: #fb923c;
+  --warning-soft: rgba(251, 146, 60, 0.15);
+  --accent: #fb923c;
+  --danger: #f87171;
+  --danger-soft: rgba(248, 113, 113, 0.14);
+  --info: #5aa0ff;
+  --info-soft: rgba(90, 160, 255, 0.16);
+
+  --sidebar-bg: #0e192d;
+  --sidebar-text: #8b9cb5;
+  --sidebar-text-active: #ffffff;
+  --sidebar-hover: rgba(255, 255, 255, 0.06);
+  --sidebar-active: #1d6fe0;
+  --sidebar-border: rgba(255, 255, 255, 0.07);
+
+  --chart-1: #5aa0ff;
+  --chart-2: #4ade80;
+  --chart-3: #fb923c;
+  --chart-4: #f87171;
+  --chart-5: #8fbfff;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.35);
+  --overlay: rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 18px 48px rgba(0, 0, 0, 0.55);
+}
+
+/* ============ Base ============ */
+body {
+  font-family: $font-family-base;
+  font-size: 15px;
+  line-height: 1.5;
+  background: var(--bg);
+  color: var(--text);
+  transition:
+    background-color $transition-base,
+    color $transition-base;
+}
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--primary-soft);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ============ Umumiy elementlar ============ */
+.icon-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: $radius-sm;
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all $transition-base;
+
+  &:hover {
+    color: var(--primary);
+    border-color: var(--primary);
+    background: var(--primary-soft);
+  }
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 38px;
+  padding: 0 1.1rem;
+  border: 1px solid transparent;
+  border-radius: $radius-sm;
+  font-weight: 500;
+  font-size: 0.9rem;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all $transition-base;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  &--primary {
+    background: var(--primary);
+    color: var(--on-primary);
+
+    &:hover:not(:disabled) {
+      background: var(--primary-hover);
+    }
+  }
+
+  &--secondary {
+    background: var(--surface);
+    border-color: var(--border);
+    color: var(--text);
+
+    &:hover:not(:disabled) {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: var(--primary-soft);
+    }
+  }
+
+  &--danger {
+    background: var(--danger);
+    color: var(--on-primary);
+
+    &:hover:not(:disabled) {
+      filter: brightness(1.1);
+    }
+  }
+
+  &--ghost {
+    background: transparent;
+    color: var(--text-muted);
+
+    &:hover:not(:disabled) {
+      background: var(--surface-2);
+      color: var(--text);
+    }
+  }
+
+  &--sm {
+    height: 32px;
+    padding: 0 0.8rem;
+    font-size: 0.82rem;
+  }
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+
+  &--success { background: var(--success-soft); color: var(--success); }
+  &--warning { background: var(--warning-soft); color: var(--warning); }
+  &--danger  { background: var(--danger-soft);  color: var(--danger); }
+  &--info    { background: var(--info-soft);    color: var(--info); }
+  &--muted   { background: var(--surface-2);    color: var(--text-muted); }
+}
+
+.empty-text {
+  padding: $spacing-md 0;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.badge {
+  &--dot::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    margin-right: 0.4rem;
+    border-radius: 50%;
+    background: currentColor;
+  }
+}
+
+/* ============ Forma elementlari ============ */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+
+  &__label {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-muted);
+
+    abbr {
+      margin-left: 0.15rem;
+      color: var(--danger);
+      text-decoration: none;
+    }
+  }
+
+  &__error {
+    font-size: 0.78rem;
+    color: var(--danger);
+  }
+
+  &__hint {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+
+  &.has-error .input {
+    border-color: var(--danger);
+  }
+}
+
+.input {
+  width: 100%;
+  height: 40px;
+  padding: 0 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: $radius-sm;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 0.9rem;
+  transition: all $transition-base;
+
+  &::placeholder {
+    color: var(--text-muted);
+    opacity: 0.8;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: var(--surface);
+    box-shadow: 0 0 0 3px var(--primary-soft);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+textarea.input {
+  height: auto;
+  min-height: 84px;
+  padding: 0.6rem 0.85rem;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+[data-density='compact'] {
+  .page {
+    padding: 1.2rem;
+  }
+
+  .btn {
+    height: 34px;
+  }
+
+  .input {
+    height: 36px;
+  }
+
+  .page-head h1 {
+    font-size: 1.4rem;
+  }
+}
+
+/* Scrollbar (qorong‘i mavzuda ham tabiiy ko‘rinadi) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}

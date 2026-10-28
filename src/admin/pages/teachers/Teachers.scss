@@ -1,0 +1,144 @@
+@use '../../styles/variables' as *;
+
+// Jadval, forma, profil va boshqa umumiy uslublar students/Students.scss da (Teachers.jsx uni ham ulaydi).
+// Bu yerda faqat ustozlar sahifasiga xos elementlar.
+
+/* ============ Guruh belgilari (jadvalda) ============ */
+.tag-list {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.tag {
+  padding: 0.1rem 0.5rem;
+  border-radius: 6px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* ============ Formadagi fan tugmalari ============ */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chip {
+  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all $transition-base;
+
+  &:hover { color: var(--text); border-color: var(--primary); }
+
+  &.is-active {
+    background: var(--primary-soft);
+    border-color: var(--primary);
+    color: var(--primary);
+    font-weight: 600;
+  }
+}
+
+/* ============ Formadagi guruhlar ro‘yxati ============ */
+.group-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+
+  @include respond($bp-sm) { grid-template-columns: 1fr; }
+}
+
+.group-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: $radius-md;
+  background: var(--surface-2);
+  cursor: pointer;
+  transition: all $transition-base;
+
+  input { margin-top: 3px; }
+
+  &:hover:not(.is-disabled) { border-color: var(--primary); }
+  &.is-checked { border-color: var(--primary); background: var(--primary-soft); }
+  &.is-disabled { opacity: 0.55; cursor: not-allowed; }
+
+  &__text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+
+    strong { font-size: 0.9rem; color: var(--text); span { font-weight: 400; color: var(--text-muted); } }
+  }
+
+  &__owner { color: var(--warning); font-weight: 600; }
+}
+
+/* ============ Profil: haftalik jadval ============ */
+.timetable {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+  }
+
+  &__day {
+    flex-shrink: 0;
+    width: 48px;
+    padding: 0.3rem 0;
+    border-radius: 8px;
+    background: var(--surface-2);
+    text-align: center;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+
+  &__lessons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__lesson {
+    padding: 0.3rem 0.7rem;
+    border-left: 3px solid var(--primary);
+    border-radius: 4px;
+    background: var(--primary-soft);
+    font-size: 0.85rem;
+    color: var(--text);
+
+    strong { font-variant-numeric: tabular-nums; margin-right: 0.3rem; }
+  }
+}
+
+/* ============ Profil: ish haqi jami ============ */
+.salary-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0.9rem;
+  border-radius: $radius-md;
+  background: var(--success-soft);
+  font-size: 0.9rem;
+
+  strong { font-size: 1.05rem; color: var(--success); font-variant-numeric: tabular-nums; }
+}

@@ -1,0 +1,31 @@
+@use '../styles/variables' as *;
+
+.admin-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  min-width: 0; // grafik va jadvallar ustunni kengaytirib yubormasligi uchun
+  display: flex;
+  flex-direction: column;
+}
+
+.page {
+  flex: 1;
+  width: 100%;
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: $spacing-lg;
+
+  @include respond($bp-sm) {
+    padding: $spacing-md;
+  }
+}
+
+.page__loading {
+  padding: $spacing-xl 0;
+  text-align: center;
+  color: var(--text-muted);
+}
