@@ -8,6 +8,8 @@ import { createDemoUsers, createDefaultRoles, defaultPermissions, normalizeRoles
 // Parollar saqlanmaydi: yangi foydalanuvchiga taklif yuboriladi, parolni u o‘zi o‘rnatadi.
 const USERS_KEY = 'edu-users-v1';
 const ROLES_KEY = 'edu-roles-v1';
+const RECEPTION_ACCESS_MIGRATION = 'edu-reception-access-v3';
+const TEACHER_READONLY_MIGRATION = 'edu-teacher-readonly-access-v2';
 
 const read = (key) => {
   try {
@@ -19,8 +21,35 @@ const read = (key) => {
   return null;
 };
 
-export const loadRoles = () => normalizeRoles(read(ROLES_KEY) ?? createDefaultRoles());
-export const loadUsers = () => read(USERS_KEY) ?? createDemoUsers();
+export const loadRoles = () => {
+  const saved = read(ROLES_KEY);
+  const roles = normalizeRoles(saved ?? createDefaultRoles());
+  // Yangi Reception ruxsatlari avval saqlangan rollarga bir marta qo‘shiladi.
+  try {
+    if (saved && !localStorage.getItem(TEACHER_READONLY_MIGRATION)) {
+      const teacher = roles.find((role) => role.id === 'teacher');
+      if (teacher) {
+        teacher.permissions = [...new Set([...teacher.permissions.filter((permission) => permission !== 'attendance.edit'), 'attendance.view', 'payments.view', 'salaries.view'])];
+        localStorage.setItem(ROLES_KEY, JSON.stringify(roles));
+      }
+      localStorage.setItem(TEACHER_READONLY_MIGRATION, 'done');
+    }
+    if (saved && !localStorage.getItem(RECEPTION_ACCESS_MIGRATION)) {
+      const receptionist = roles.find((role) => role.id === 'reception');
+      if (receptionist) {
+        receptionist.permissions = [...new Set([...receptionist.permissions, 'attendance.view', 'attendance.edit', 'payments.create', 'payments.delete', 'payments.export'])];
+        localStorage.setItem(ROLES_KEY, JSON.stringify(roles));
+      }
+      localStorage.setItem(RECEPTION_ACCESS_MIGRATION, 'done');
+    }
+  } catch {
+    /* Mahalliy saqlash yopiq bo‘lsa ham rol ishlayveradi. */
+  }
+  return roles;
+};
+export const loadUsers = () => (read(USERS_KEY) ?? createDemoUsers()).map((user) =>
+  user.status === 'invited' ? { ...user, status: 'active', note: user.note?.includes('Taklif yuborilgan') ? '' : user.note } : user,
+);
 
 const nextUserId = (list) => {
   const max = list.reduce((m, u) => Math.max(m, Number(u.id.replace(/\D/g, '')) || 0), 0);

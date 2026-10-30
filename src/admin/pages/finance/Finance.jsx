@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { Users, AlertTriangle, Banknote, Download, Plus, Receipt, Search, TrendingUp, Wallet } from 'lucide-react';
+import { Users, AlertTriangle, Banknote, Download, Layers3, Plus, Receipt, Search, TrendingUp, Wallet } from 'lucide-react';
 import StatCard from '../../components/StatCard';
 import Card from '../../components/Card';
 import Modal from '../../components/ui/Modal';
@@ -11,6 +11,9 @@ import { formatDate, formatMoney, formatPhone, formatSom } from '../../utils/for
 import { useStudents } from '../students/useStudents';
 import { PAYMENT_STATUSES, getPaymentStatus } from '../students/studentsData';
 import { EXPENSE_CATEGORIES, METHODS, categoryLabel, isoDate, useExpenses, usePayments } from './financeStore';
+import { loadRoles } from '../users-roles/usersStore';
+import { loadGroups } from '../groups/groupsStore';
+import { loadCourses } from '../courses/coursesStore';
 import '../students/Students.scss';
 import './Finance.scss';
 
@@ -25,13 +28,19 @@ const MONTHS = ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyn', 'Iyl', 'Avg', 'Sen', '
 const sum = (list) => list.reduce((t, x) => t + (x.amount || 0), 0);
 const fullName = (s) => `${s.lastName} ${s.firstName}`;
 
-export const FinTabs = ({ onNavigate }) => (
+export const FinTabs = ({ onNavigate }) => {
+  const location = useLocation();
+  const reception = location.pathname.startsWith('/reception');
+  const role = reception ? loadRoles().find((item) => item.id === sessionStorage.getItem('educontrol_role')) : null;
+  const tabs = TABS.filter(({ to }) => !reception || role?.permissions?.includes(`${to.slice('/admin/'.length)}.view`));
+  return (
   <nav className="fin-tabs" aria-label="Moliya bo‘limlari">
-    {TABS.map(({ to, label, icon: Icon, end }) => (
-      <NavLink key={to} to={to} end={end} className={({ isActive }) => `fin-tab${isActive ? ' is-active' : ''}`} onClick={onNavigate}><Icon size={16} /> {label}</NavLink>
+    {tabs.map(({ to, label, icon: Icon, end }) => (
+      <NavLink key={to} to={reception ? `/reception${to.slice('/admin'.length)}` : to} end={end} className={({ isActive }) => `fin-tab${isActive ? ' is-active' : ''}`} onClick={onNavigate}><Icon size={16} /> {label}</NavLink>
     ))}
   </nav>
-);
+  );
+};
 
 const Finance = ({ view = 'overview' }) => {
   const toast = useToast();
@@ -43,6 +52,8 @@ const Finance = ({ view = 'overview' }) => {
   const [payFor, setPayFor] = useState(null); // null | '' | studentId
   const [expOpen, setExpOpen] = useState(false);
   const [limit, setLimit] = useState(20);
+  const [revenueOpen, setRevenueOpen] = useState(false);
+  const [revenueMonth, setRevenueMonth] = useState('all');
 
   const now = new Date();
   const monthKey = isoDate(now).slice(0, 7);
@@ -53,6 +64,27 @@ const Finance = ({ view = 'overview' }) => {
   const totalDebt = sum(debtors.map((s) => ({ amount: s.debt })));
   const monthIncome = sum(payments.filter((p) => p.date.startsWith(monthKey)));
   const monthExpense = sum(expenses.filter((e) => e.date.startsWith(monthKey)));
+  const revenueBreakdown = useMemo(() => {
+    const selectedPayments = payments.filter((payment) => revenueMonth === 'all' || payment.date?.startsWith(revenueMonth));
+    const studentById = new Map(students.map((student) => [student.id, student]));
+    const groupTotals = new Map();
+    const courseTotals = new Map();
+    selectedPayments.forEach((payment) => {
+      const group = payment.group || studentById.get(payment.studentId)?.group || 'Guruh ko‘rsatilmagan';
+      const course = payment.course || 'Kurs ko‘rsatilmagan';
+      groupTotals.set(group, (groupTotals.get(group) || 0) + Number(payment.amount || 0));
+      courseTotals.set(course, (courseTotals.get(course) || 0) + Number(payment.amount || 0));
+    });
+    return {
+      groups: [...new Set([...loadGroups().map((group) => group.code), ...groupTotals.keys()])]
+        .map((name) => ({ name, amount: groupTotals.get(name) || 0 }))
+        .sort((a, b) => b.amount - a.amount),
+      courses: [...new Set([...loadCourses().map((course) => course.name), ...courseTotals.keys()])]
+        .map((name) => ({ name, amount: courseTotals.get(name) || 0 }))
+        .sort((a, b) => b.amount - a.amount),
+      total: sum(selectedPayments),
+    };
+  }, [payments, students, revenueMonth]);
 
   const chart = useMemo(
     () =>
@@ -105,10 +137,11 @@ const Finance = ({ view = 'overview' }) => {
   );
 
   return (
-    <div className="students-page">
+    <div className="students-page finance-page">
       <div className="page-head">
         <div><h1>{titles[view]}</h1><p>Tushum, qarzdorlik va xarajatlar nazorati</p></div>
         <div className="page-head__actions">
+          {view === 'overview' && <button type="button" className="btn btn--secondary" onClick={() => setRevenueOpen(true)}><Layers3 size={16} /> Guruhlar va kurslar tushumi</button>}
           {view === 'overview' || view === 'expenses' ? <button type="button" className="btn btn--secondary" onClick={() => setExpOpen(true)}><Plus size={16} /> Xarajat</button> : null}
           <button type="button" className="btn btn--primary" onClick={() => setPayFor('')}><Plus size={16} /> To‘lov qabul qilish</button>
         </div>
@@ -199,6 +232,23 @@ const Finance = ({ view = 'overview' }) => {
 
       {payFor !== null && <PaymentModal key={payFor} students={students} initial={payFor} onClose={() => setPayFor(null)} onSubmit={submitPayment} />}
       {expOpen && <ExpenseModal onClose={() => setExpOpen(false)} onSubmit={submitExpense} />}
+      <Modal open={revenueOpen} onClose={() => setRevenueOpen(false)} title="Guruhlar va kurslar tushumi" subtitle="Qabul qilingan to‘lovlar bo‘yicha daromad taqsimoti" size="lg">
+        <div className="finance-revenue">
+          <label className="finance-revenue__period">Davr
+            <select className="input" value={revenueMonth} onChange={(event) => setRevenueMonth(event.target.value)}>
+              <option value="all">Barcha davr</option>
+              {Array.from({ length: 12 }, (_, index) => { const date = new Date(); date.setDate(1); date.setMonth(date.getMonth() - index); const value = isoDate(date).slice(0, 7); return <option key={value} value={value}>{new Intl.DateTimeFormat('uz-UZ', { month: 'long', year: 'numeric' }).format(date)}</option>; })}
+            </select>
+          </label>
+          <div className="finance-revenue__total"><span>Jami tushum</span><strong>{formatSom(revenueBreakdown.total)}</strong></div>
+          <div className="finance-revenue__columns">
+            {[['Guruhlar kesimida', revenueBreakdown.groups], ['Kurslar kesimida', revenueBreakdown.courses]].map(([title, rows]) => <section className="finance-revenue__section" key={title}>
+              <h3>{title}</h3>
+              <div className="finance-revenue__list">{rows.map((row) => <div key={row.name}><span>{row.name}</span><strong>{formatSom(row.amount)}</strong></div>)}</div>
+            </section>)}
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

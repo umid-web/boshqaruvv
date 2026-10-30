@@ -1,13 +1,9 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  GraduationCap,
-  UserCheck,
-  UserPlus,
-  Users,
-  School,
+  Banknote,
+  CreditCard,
   Wallet,
-  TrendingUp,
   Receipt,
 } from 'lucide-react';
 import DashboardHeader from '../components/DashboardHeader';
@@ -36,6 +32,9 @@ import {
   REVENUE_PERIODS,
 } from '../data/dashboardDemoData';
 import { formatNumber, formatMoney } from '../utils/format';
+import { loadGroups } from './groups/groupsStore';
+import { useStudents } from './students/useStudents';
+import { isoDate, usePayments } from './finance/financeStore';
 import './Dashboard.scss';
 
 const loadData = (period) => ({
@@ -58,6 +57,8 @@ const Dashboard = () => {
   const [period, setPeriod] = useState('month');
   const [revenuePeriod, setRevenuePeriod] = useState('month');
   const [data, setData] = useState(() => loadData('month'));
+  const { students } = useStudents();
+  const { payments } = usePayments(students);
 
   // So‘nggi faoliyatlar — haqiqiy faoliyat tarixidan (bo‘sh bo‘lsa, DEMO ro‘yxat)
   const live = useActivities();
@@ -75,6 +76,16 @@ const Dashboard = () => {
   const handleRefresh = () => setData(loadData(period));
 
   const { stats } = data;
+  const todayKey = isoDate(new Date());
+  const monthKey = todayKey.slice(0, 7);
+  const todayPayments = payments.filter((payment) => payment.date === todayKey);
+  const monthPayments = payments.filter((payment) => payment.date?.startsWith(monthKey));
+  const paymentTotal = (list) => list.reduce((total, payment) => total + Number(payment.amount || 0), 0);
+  const averagePayment = payments.length ? paymentTotal(payments) / payments.length : 0;
+  const scheduleGroups = loadGroups();
+  const availableRooms = [...new Set(scheduleGroups.map((group) => group.room).filter(Boolean))];
+  const today = new Date().getDay();
+  const occupiedRooms = new Set(scheduleGroups.filter((group) => group.status === 'active' && group.days?.includes(today)).map((group) => group.room));
   const periodLabel = getPeriodLabel(period);
 
   const handleExport = () => {
@@ -110,15 +121,11 @@ const Dashboard = () => {
         onExport={handleExport}
       />
 
-      <section className="stats-grid" aria-label="Asosiy ko‘rsatkichlar">
-        <StatCard title="Jami talabalar" value={formatNumber(stats.totalStudents)} icon={GraduationCap} tone="primary" change={stats.changes.totalStudents} />
-        <StatCard title="Faol talabalar" value={formatNumber(stats.activeStudents)} icon={Users} tone="success" change={stats.changes.activeStudents} />
-        <StatCard title="Ustozlar" value={formatNumber(stats.totalTeachers)} icon={UserCheck} tone="warning" />
-        <StatCard title="Qo‘shimcha ustozlar" value={formatNumber(stats.extraTeachers)} icon={UserPlus} tone="success" />
-        <StatCard title="Faol guruhlar" value={formatNumber(stats.activeGroups)} icon={School} tone="warning" />
-        <StatCard title="Bugungi tushum" value={formatMoney(stats.todayIncome)} icon={Wallet} tone="success" change={stats.changes.todayIncome} />
-        <StatCard title={`Tushum · ${periodLabel}`} value={formatMoney(stats.periodIncome)} icon={TrendingUp} tone="primary" change={stats.changes.periodIncome} />
-        <StatCard title="Qarzdorlik" value={formatMoney(stats.unpaidDebts)} icon={Receipt} tone="warning" change={stats.changes.unpaidDebts} invertChange />
+      <section className="stats-grid" aria-label="To‘lovlar ko‘rsatkichlari">
+        <StatCard title="Bugungi tushum" value={formatMoney(paymentTotal(todayPayments))} icon={Wallet} tone="success" />
+        <StatCard title="Joriy oy" value={formatMoney(paymentTotal(monthPayments))} icon={Banknote} tone="primary" />
+        <StatCard title={`Tanlangan (${payments.length} ta)`} value={formatMoney(paymentTotal(payments))} icon={Receipt} tone="warning" />
+        <StatCard title="O‘rtacha to‘lov" value={formatMoney(averagePayment)} icon={CreditCard} tone="primary" />
       </section>
 
       <section aria-label="Tezkor amallar">
@@ -159,7 +166,7 @@ const Dashboard = () => {
 
       <section className="grid" aria-label="Bugungi ma'lumotlar">
         <Card className="span-8" title="Bugungi darslar" demo>
-          <TodaySchedule schedule={data.schedule} />
+          <TodaySchedule schedule={data.schedule} availableRooms={availableRooms} occupiedRooms={occupiedRooms} />
         </Card>
 
         <div className="span-4 stack">

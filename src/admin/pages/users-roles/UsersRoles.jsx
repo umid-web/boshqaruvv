@@ -29,7 +29,6 @@ const UsersRoles = () => {
     return {
       total: users.length,
       active: users.filter((u) => u.status === 'active').length,
-      pending: users.filter((u) => u.status === 'invited').length,
       blocked: users.filter((u) => u.status === 'blocked').length,
       roles: roles.length,
     };
@@ -49,7 +48,7 @@ const UsersRoles = () => {
       <section className="students-stats" aria-label="Ko‘rsatkichlar">
         <StatCard title="Jami foydalanuvchilar" value={formatNumber(summary.total)} icon={Users} tone="primary" />
         <StatCard title="Faol foydalanuvchilar" value={formatNumber(summary.active)} icon={UserCheck} tone="success" />
-        <StatCard title="Kutilmoqda va bloklangan" value={formatNumber(summary.pending + summary.blocked)} icon={Ban} tone="warning" />
+        <StatCard title="Bloklangan foydalanuvchilar" value={formatNumber(summary.blocked)} icon={Ban} tone="warning" />
         <StatCard title="Rollar soni" value={formatNumber(summary.roles)} icon={ShieldCheck} tone="danger" />
       </section>
 

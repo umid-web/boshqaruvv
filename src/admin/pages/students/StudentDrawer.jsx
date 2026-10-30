@@ -33,12 +33,16 @@ const Row = ({ icon: Icon, label, children }) => (
 );
 
 /** Talaba profili — yon panel: asosiy ma'lumotlar, to‘lov holati va to‘lovlar tarixi. */
-const StudentDrawer = ({ student, onClose, onEdit, onDelete }) => {
+const StudentDrawer = ({ student, payments = [], onClose, onEdit, onDelete }) => {
   const teachers = useMemo(loadTeachers, []);
   if (!student) return null;
   const status = STATUSES[student.status];
   const payment = PAYMENT_STATUSES[getPaymentStatus(student)];
-  const history = getPaymentHistory(student);
+  const savedHistory = payments
+    .filter((payment) => payment.studentId === student.id)
+    .sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  const history = savedHistory.length ? savedHistory : getPaymentHistory(student);
+  const hasRealPaymentHistory = savedHistory.some((payment) => String(payment.id).startsWith('PAY-'));
   const years = age(student.birthDate);
   const gender = GENDERS.find((g) => g.value === student.gender)?.label;
   const teacher = findTeacherByGroup(teachers, student.group);
@@ -52,12 +56,12 @@ const StudentDrawer = ({ student, onClose, onEdit, onDelete }) => {
       title="Talaba profili"
       footer={
         <>
-          <button type="button" className="btn btn--ghost" onClick={() => onDelete(student)} style={{ marginRight: 'auto', color: 'var(--danger)' }}>
+          {onDelete && <button type="button" className="btn btn--ghost" onClick={() => onDelete(student)} style={{ marginRight: 'auto', color: 'var(--danger)' }}>
             <Trash2 size={16} /> O‘chirish
-          </button>
-          <button type="button" className="btn btn--primary" onClick={() => onEdit(student)}>
+          </button>}
+          {onEdit && <button type="button" className="btn btn--primary" onClick={() => onEdit(student)}>
             <Edit3 size={16} /> Tahrirlash
-          </button>
+          </button>}
         </>
       }
     >
@@ -135,7 +139,7 @@ const StudentDrawer = ({ student, onClose, onEdit, onDelete }) => {
         <section className="profile__section">
           <h4>
             To‘lovlar tarixi <span className={`badge badge--${payment.tone}`}>{payment.label}</span>
-            <span className="badge badge--muted">DEMO</span>
+            {!hasRealPaymentHistory && <span className="badge badge--muted">DEMO</span>}
           </h4>
           {history.length === 0 ? (
             <p className="empty-text">To‘lovlar hali mavjud emas</p>

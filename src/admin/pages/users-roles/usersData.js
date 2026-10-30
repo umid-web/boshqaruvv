@@ -31,6 +31,7 @@ const MODULE_ACTIONS = {
   payments: FULL,
   debts: ['view', 'export'],
   expenses: FULL,
+  salaries: ['view'],
   reports: ['view', 'export'],
   notifications: ['view', 'create'],
   'users-roles': CRUD,
@@ -151,15 +152,15 @@ const SYSTEM_ROLES = [
     description: 'Yangi talabalarni ro‘yxatga oladi va to‘lovlarni qabul qiladi',
     permissions: () =>
       grant({
-        dashboard: 'all', students: ['view', 'create', 'edit'], groups: ['view'], courses: ['view'], schedule: ['view'],
-        payments: ['view', 'create'], debts: ['view'],
+        dashboard: 'all', students: ['view', 'create', 'edit'], groups: ['view'], courses: ['view'], schedule: ['view'], attendance: ['view', 'edit'],
+        payments: ['view', 'create', 'delete', 'export'], debts: ['view'],
       }),
   },
   {
     id: 'teacher', name: 'Ustoz', tone: 'muted',
-    description: 'Faqat o‘z darslari: jadval, guruhlar, talabalar ro‘yxati va davomat',
+    description: 'O‘z o‘quvchilari, jadvali, davomat, to‘lov holati va ish haqi',
     permissions: () =>
-      grant({ dashboard: ['view'], students: ['view'], groups: ['view'], courses: ['view'], schedule: ['view'], attendance: ['view', 'edit'] }),
+      grant({ dashboard: ['view'], students: ['view'], schedule: ['view'], attendance: ['view'], payments: ['view'], salaries: ['view'] }),
   },
 ];
 
@@ -202,7 +203,6 @@ export const summarizePermissions = (role) => {
 /* ============ Foydalanuvchilar ============ */
 export const USER_STATUSES = {
   active: { label: 'Faol', tone: 'success' },
-  invited: { label: 'Taklif yuborilgan', tone: 'info' },
   blocked: { label: 'Bloklangan', tone: 'danger' },
 };
 export const USER_STATUS_OPTIONS = Object.entries(USER_STATUSES).map(([value, { label }]) => ({ value, label }));
@@ -222,6 +222,6 @@ export const createDemoUsers = () => [
   { id: 'U-0005', firstName: 'Jasur', lastName: 'Toshpulatov', email: 'jasur@educontrol.uz', phone: '998971110022', roleId: 'reception', status: 'active', createdAt: '2025-06-21', lastLoginAt: '2026-10-25 12:48', note: '' },
   { id: 'U-0006', firstName: 'Nigora', lastName: 'Ergasheva', email: 'nigora@educontrol.uz', phone: '998901230099', roleId: 'reception', status: 'active', createdAt: '2025-09-01', lastLoginAt: '2026-10-27 08:58', note: 'Ikkinchi smena' },
   { id: 'U-0007', firstName: 'Bobur', lastName: 'Mirzaev', email: 'bobur@educontrol.uz', phone: '998911112288', roleId: 'teacher', status: 'active', createdAt: '2025-09-12', lastLoginAt: '2026-10-24 19:20', note: '' },
-  { id: 'U-0008', firstName: 'Shahnoza', lastName: 'Abdullayeva', email: 'shahnoza@educontrol.uz', phone: '998901119900', roleId: 'teacher', status: 'invited', createdAt: '2026-10-22', lastLoginAt: '', note: 'Taklif yuborilgan, parol hali o‘rnatilmagan' },
+  { id: 'U-0008', firstName: 'Shahnoza', lastName: 'Abdullayeva', email: 'shahnoza@educontrol.uz', phone: '998901119900', roleId: 'teacher', status: 'active', createdAt: '2026-10-22', lastLoginAt: '', note: '' },
   { id: 'U-0009', firstName: 'Otabek', lastName: 'Nazarov', email: 'otabek@educontrol.uz', phone: '', roleId: 'accountant', status: 'blocked', createdAt: '2025-05-14', lastLoginAt: '2026-08-02 11:10', note: 'Ishdan ketgan' },
 ];

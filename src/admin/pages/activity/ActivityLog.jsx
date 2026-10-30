@@ -19,7 +19,6 @@ import StatCard from '../../components/StatCard';
 import Card from '../../components/Card';
 import Avatar from '../../components/ui/Avatar';
 import Modal from '../../components/ui/Modal';
-import Pagination from '../../components/ui/Pagination';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/useToast';
 import {
@@ -58,8 +57,6 @@ const ActivityLog = () => {
   const [period, setPeriod] = useState('all');
   const [range, setRange] = useState({ from: '', to: '' });
   const [dir, setDir] = useState('desc');
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
   const [viewId, setViewId] = useState(null);
   const [confirmClear, setConfirmClear] = useState(false);
 
@@ -121,16 +118,13 @@ const ActivityLog = () => {
     });
     return dir === 'desc' ? list : [...list].reverse();
   }, [all, query, moduleKey, action, period, range, dir]);
-
-  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const safePage = Math.min(page, pageCount);
-  const rows = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
+  const rows = filtered;
   const hasFilters = query.trim() !== '' || moduleKey !== 'all' || action !== 'all' || period !== 'all';
   const viewing = all.find((a) => a.id === viewId) ?? null;
 
   const change = (setter) => (value) => {
     setter(value);
-    setPage(1);
+    
   };
   const clearFilters = () => {
     setQuery('');
@@ -138,7 +132,7 @@ const ActivityLog = () => {
     setAction('all');
     setPeriod('all');
     setRange({ from: '', to: '' });
-    setPage(1);
+    
   };
 
   const exportCsv = () => {
@@ -161,7 +155,7 @@ const ActivityLog = () => {
     clearActivities();
     setConfirmClear(false);
     setViewId(null);
-    setPage(1);
+    
     toast.info('Faoliyat tarixi tozalandi');
   };
 
@@ -234,7 +228,7 @@ const ActivityLog = () => {
                   aria-label="Boshlanish sanasi"
                   value={range.from}
                   max={range.to || undefined}
-                  onChange={(e) => { setRange((r) => ({ ...r, from: e.target.value })); setPage(1); }}
+                  onChange={(e) => { setRange((r) => ({ ...r, from: e.target.value }));  }}
                 />
                 <input
                   type="date"
@@ -242,7 +236,7 @@ const ActivityLog = () => {
                   aria-label="Tugash sanasi"
                   value={range.to}
                   min={range.from || undefined}
-                  onChange={(e) => { setRange((r) => ({ ...r, to: e.target.value })); setPage(1); }}
+                  onChange={(e) => { setRange((r) => ({ ...r, to: e.target.value }));  }}
                 />
               </>
             )}
@@ -334,14 +328,7 @@ const ActivityLog = () => {
               </table>
             </div>
 
-            <Pagination
-              page={safePage}
-              pageSize={pageSize}
-              total={filtered.length}
-              onPageChange={setPage}
-              onPageSizeChange={(s) => { setPageSize(s); setPage(1); }}
-              pageSizes={[10, 20, 50, 100]}
-            />
+            
           </>
         )}
       </Card>

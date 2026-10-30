@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { diffObjects, logActivity } from '../../activity/activityStore';
 import { formatSom } from '../../utils/format';
 import { getPaymentHistory } from '../students/studentsData';
+import { loadGroups } from '../groups/groupsStore';
 
 // DEMO: localStorage. Backend ulanganda faqat shu fayl API so‘rovlariga almashtiriladi.
 const PAY_KEY = 'edu-payments-v1';
@@ -48,7 +49,7 @@ const expTitle = (e) => `${e.title} — ${formatSom(e.amount)}`;
 export const usePayments = (students) => {
   const [payments, setPayments] = useSaved(PAY_KEY, () =>
     students
-      .flatMap((s) => getPaymentHistory(s).map((p) => ({ ...p, studentId: s.id, name: `${s.lastName} ${s.firstName}`, group: s.group })))
+      .flatMap((s) => getPaymentHistory(s).map((p) => ({ ...p, studentId: s.id, name: `${s.lastName} ${s.firstName}`, group: s.group, course: s.course })))
       .sort((a, b) => b.date.localeCompare(a.date)),
   );
   const latest = useRef(payments);
@@ -56,8 +57,25 @@ export const usePayments = (students) => {
     latest.current = payments;
   }, [payments]);
 
+  useEffect(() => {
+    const studentsById = new Map(students.map((student) => [student.id, student]));
+    const courseByGroup = new Map(loadGroups().map((group) => [group.code, group.course]));
+    setPayments((list) => {
+      let changed = false;
+      const migrated = list.map((payment) => {
+        if (typeof payment.course === 'string' && payment.course.trim()) return payment;
+        const course = courseByGroup.get(payment.group) || studentsById.get(payment.studentId)?.course || '';
+        if (!course) return payment;
+        changed = true;
+        return { ...payment, course };
+      });
+      return changed ? migrated : list;
+    });
+  }, [students, setPayments]);
+
   const add = useCallback((p) => {
-    const created = { ...p, id: `PAY-${Date.now()}` };
+    const student = students.find((item) => item.id === p.studentId);
+    const created = { ...p, group: p.group || student?.group || '', course: p.course || student?.course || '', id: `PAY-${Date.now()}` };
     setPayments((l) => [created, ...l]);
     logActivity({
       module: 'payments',
@@ -70,7 +88,7 @@ export const usePayments = (students) => {
       notify: { category: 'payment', priority: 'normal', title: 'To‘lov qabul qilindi', message: `${created.name} · ${formatSom(created.amount)}${created.method ? ` (${created.method})` : ''}`, link: '/admin/payments' },
     });
     return created;
-  }, [setPayments]);
+  }, [setPayments, students]);
   const remove = useCallback((id) => {
     const removed = latest.current.find((p) => p.id === id);
     setPayments((l) => l.filter((p) => p.id !== id));
@@ -87,11 +105,25 @@ export const usePayments = (students) => {
       });
     }
   }, [setPayments]);
+  const removeForStudent = useCallback((studentId) => {
+    const removed = latest.current.filter((payment) => payment.studentId === studentId);
+    if (!removed.length) return [];
+    setPayments((list) => list.filter((payment) => payment.studentId !== studentId));
+    logActivity({
+      module: 'payments',
+      action: 'delete',
+      severity: 'warning',
+      title: `${removed.length} ta to‘lov yozuvi talabalar bazasi bilan birga o‘chirildi`,
+      entityId: studentId,
+      entityName: removed[0].name,
+    });
+    return removed;
+  }, [setPayments]);
   const restore = useCallback((p) => {
     setPayments((l) => [p, ...l].sort((a, b) => b.date.localeCompare(a.date)));
     logActivity({ module: 'payments', action: 'restore', severity: 'info', title: `To‘lov qaytarildi: ${payTitle(p)}`, entityId: p.id, entityName: p.name });
   }, [setPayments]);
-  return { payments, add, remove, restore };
+  return { payments, add, remove, removeForStudent, restore };
 };
 
 export const useExpenses = () => {

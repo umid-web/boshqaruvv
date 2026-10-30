@@ -17,6 +17,13 @@ const NotificationBell = () => {
   const buttonRef = useRef(null);
   const panelId = useId();
   const navigate = useNavigate();
+  const isReception = sessionStorage.getItem('educontrol_role') === 'reception';
+  const notificationPath = (path) => {
+    if (!isReception || !path?.startsWith('/admin/')) return path;
+    const section = path.slice('/admin/'.length).split('/')[0];
+    const receptionSections = new Set(['debts', 'attendance', 'students', 'payments', 'groups', 'courses', 'schedule']);
+    return receptionSections.has(section) ? `/reception/${section}` : '/reception';
+  };
 
   // Tashqariga bosilganda yoki Esc bosilganda yopiladi
   useEffect(() => {
@@ -44,7 +51,7 @@ const NotificationBell = () => {
   const openItem = (n) => {
     markRead(n.id);
     setOpen(false);
-    if (n.link) navigate(n.link);
+    if (n.link) navigate(notificationPath(n.link));
   };
 
   return (
@@ -132,7 +139,9 @@ const NotificationBell = () => {
           )}
 
           <footer className="bell__foot">
-            <Link to="/admin/notifications" onClick={() => setOpen(false)}>Barchasini ko‘rish</Link>
+            <Link to={isReception ? '/reception' : '/admin/notifications'} onClick={() => setOpen(false)}>
+              {isReception ? 'Panelga o‘tish' : 'Barchasini ko‘rish'}
+            </Link>
           </footer>
         </div>
       )}

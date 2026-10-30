@@ -24,7 +24,7 @@ export const calcSalary = (base, entries) => {
   const penalty = sum(['penalty']);
   const paid = sum(['pay', 'advance']);
   const due = Math.max(0, base + bonus - penalty);
-  const left = Math.max(0, due - paid);
+  const left = due - paid;
   const status = paid > 0 && paid >= due ? 'paid' : paid > 0 ? 'partial' : 'unpaid';
   return { base, bonus, penalty, due, paid, left, status, pct: due ? Math.min(100, Math.round((paid / due) * 100)) : 0 };
 };

@@ -22,7 +22,6 @@ import {
 import StatCard from '../../components/StatCard';
 import Card from '../../components/Card';
 import Avatar from '../../components/ui/Avatar';
-import Pagination from '../../components/ui/Pagination';
 import RowMenu from '../../components/ui/RowMenu';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/useToast';
@@ -72,8 +71,6 @@ const Teachers = () => {
   const [query, setQuery] = useState('');
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [sort, setSort] = useState({ key: 'name', dir: 'asc' });
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
   const [selected, setSelected] = useState(() => new Set());
 
   const [form, setForm] = useState({ open: false, teacher: null });
@@ -123,10 +120,7 @@ const Teachers = () => {
     const dir = sort.dir === 'asc' ? 1 : -1;
     return [...list].sort((a, b) => sorters[sort.key](a, b) * dir || a.id.localeCompare(b.id));
   }, [teachers, query, filters, sort, statsById]);
-
-  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const safePage = Math.min(page, pageCount);
-  const rows = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
+  const rows = filtered;
 
   const hasFilters = query.trim() !== '' || Object.keys(DEFAULT_FILTERS).some((k) => filters[k] !== DEFAULT_FILTERS[k]);
   const viewTeacher = teachers.find((t) => t.id === viewId) ?? null;
@@ -140,7 +134,7 @@ const Teachers = () => {
 
   // ---------- Filtr / saralash ----------
   const resetView = () => {
-    setPage(1);
+    
     setSelected(new Set());
   };
   const changeQuery = (value) => {
@@ -158,7 +152,7 @@ const Teachers = () => {
   };
   const toggleSort = (key) => {
     setSort((s) => (s.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' }));
-    setPage(1);
+    
   };
 
   // ---------- Tanlash ----------
@@ -189,7 +183,7 @@ const Teachers = () => {
       const created = add(payload);
       toast.success(`${teacherName(created)} qo‘shildi (${created.id})`);
       setSort({ key: 'name', dir: 'asc' });
-      setPage(1);
+      
     }
     if (releasing) toast.info(`${data.groups.length} ta guruh ustozsiz qoldi — yangi ustoz biriktiring`);
     setForm({ open: false, teacher: null });
@@ -461,18 +455,7 @@ const Teachers = () => {
           </div>
         )}
 
-        {filtered.length > 0 && (
-          <Pagination
-            page={safePage}
-            pageSize={pageSize}
-            total={filtered.length}
-            onPageChange={(p) => setPage(Math.min(Math.max(1, p), pageCount))}
-            onPageSizeChange={(n) => {
-              setPageSize(n);
-              setPage(1);
-            }}
-          />
-        )}
+        
       </Card>
 
       <TeacherFormModal

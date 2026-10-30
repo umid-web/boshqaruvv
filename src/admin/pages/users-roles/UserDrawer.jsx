@@ -56,8 +56,7 @@ const UserDrawer = ({ user, role, onClose, onEdit, onDelete, onToggleBlock, onRe
         <div className="profile__actions">
           {user.status !== 'blocked' && (
             <button type="button" className="btn btn--secondary btn--sm" onClick={() => onResetPassword(user)}>
-              {user.status === 'invited' ? <Mail size={14} /> : <KeyRound size={14} />}
-              {user.status === 'invited' ? 'Taklifni qayta yuborish' : 'Parolni tiklash'}
+              <KeyRound size={14} /> Parolni tiklash
             </button>
           )}
           <button type="button" className="btn btn--secondary btn--sm" onClick={() => onToggleBlock(user)}>
@@ -68,7 +67,7 @@ const UserDrawer = ({ user, role, onClose, onEdit, onDelete, onToggleBlock, onRe
 
         <section className="profile__section">
           <h4>Ma'lumotlar</h4>
-          <Row icon={Mail} label="Email (login)">{user.email}</Row>
+          <Row icon={Mail} label="Login">{user.login || user.email?.split('@')[0] || '—'}</Row>
           <Row icon={Phone} label="Telefon">{formatPhone(user.phone)}</Row>
           <Row icon={CalendarDays} label="Qo‘shilgan sana">{formatDate(user.createdAt)}</Row>
           <Row icon={Clock} label="Oxirgi kirish">{user.lastLoginAt ? formatDateTime(user.lastLoginAt) : 'Hali kirmagan'}</Row>

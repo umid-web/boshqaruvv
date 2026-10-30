@@ -20,7 +20,6 @@ import {
 import Card from '../../components/Card';
 import Avatar from '../../components/ui/Avatar';
 import Modal from '../../components/ui/Modal';
-import Pagination from '../../components/ui/Pagination';
 import RowMenu from '../../components/ui/RowMenu';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/useToast';
@@ -34,7 +33,7 @@ const DEFAULT_FILTERS = { status: 'all', role: 'all' };
 
 const COLUMNS = [
   { key: 'name', label: 'Foydalanuvchi', sortable: true },
-  { key: 'email', label: 'Email', sortable: true, className: 'col-lg' },
+  { key: 'login', label: 'Login', sortable: true, className: 'col-lg' },
   { key: 'role', label: 'Rol', sortable: true },
   { key: 'status', label: 'Holati', sortable: true },
   { key: 'lastLogin', label: 'Oxirgi kirish', sortable: true, className: 'col-xl' },
@@ -42,7 +41,7 @@ const COLUMNS = [
 
 const matchesQuery = (u, q, roleName) => {
   if (!q) return true;
-  const text = `${u.lastName} ${u.firstName} ${u.id} ${u.email} ${roleName}`.toLowerCase();
+  const text = `${u.lastName} ${u.firstName} ${u.id} ${u.login || u.email?.split('@')[0] || ''} ${roleName}`.toLowerCase();
   const digits = q.replace(/\D/g, '');
   return text.includes(q) || (digits.length >= 3 && u.phone.includes(digits));
 };
@@ -82,8 +81,6 @@ const UsersTab = ({ access }) => {
   const [query, setQuery] = useState('');
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [sort, setSort] = useState({ key: 'name', dir: 'asc' });
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
   const [selected, setSelected] = useState(() => new Set());
 
   const [form, setForm] = useState({ open: false, user: null });
@@ -111,7 +108,7 @@ const UsersTab = ({ access }) => {
     );
     const sorters = {
       name: (a, b) => userName(a).localeCompare(userName(b), 'uz'),
-      email: (a, b) => a.email.localeCompare(b.email),
+      login: (a, b) => (a.login || a.email?.split('@')[0] || '').localeCompare(b.login || b.email?.split('@')[0] || ''),
       role: (a, b) => nameOf(a.roleId).localeCompare(nameOf(b.roleId), 'uz'),
       status: (a, b) => a.status.localeCompare(b.status),
       lastLogin: (a, b) => (a.lastLoginAt || '').localeCompare(b.lastLoginAt || ''),
@@ -119,10 +116,7 @@ const UsersTab = ({ access }) => {
     const dir = sort.dir === 'asc' ? 1 : -1;
     return [...result].sort((a, b) => sorters[sort.key](a, b) * dir || a.id.localeCompare(b.id));
   }, [list, query, filters, sort, roleById]);
-
-  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const safePage = Math.min(page, pageCount);
-  const rows = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
+  const rows = filtered;
 
   const hasFilters = query.trim() !== '' || Object.keys(DEFAULT_FILTERS).some((k) => filters[k] !== DEFAULT_FILTERS[k]);
   const viewUser = list.find((u) => u.id === viewId) ?? null;
@@ -136,7 +130,7 @@ const UsersTab = ({ access }) => {
 
   // ---------- Filtr / saralash ----------
   const resetView = () => {
-    setPage(1);
+    
     setSelected(new Set());
   };
   const changeQuery = (value) => {
@@ -154,7 +148,7 @@ const UsersTab = ({ access }) => {
   };
   const toggleSort = (key) => {
     setSort((s) => (s.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' }));
-    setPage(1);
+    
   };
 
   // ---------- Tanlash ----------
@@ -189,13 +183,9 @@ const UsersTab = ({ access }) => {
       toast.success(`${userName(data)} ma'lumotlari saqlandi`);
     } else {
       const created = addUser(data);
-      toast.success(
-        data.status === 'invited'
-          ? `${userName(created)} qo‘shildi, ${created.email} manziliga taklif yuborildi (DEMO)`
-          : `${userName(created)} qo‘shildi (${created.id})`,
-      );
+      toast.success(`${userName(created)} qo‘shildi · login: ${created.login}`);
       setSort({ key: 'name', dir: 'asc' });
-      setPage(1);
+      
     }
     setForm({ open: false, user: null });
   };
@@ -245,18 +235,13 @@ const UsersTab = ({ access }) => {
 
   const toggleBlock = (u) => changeStatus([u.id], u.status === 'blocked' ? 'active' : 'blocked');
 
-  const resetPassword = (u) =>
-    toast.success(
-      u.status === 'invited'
-        ? `${u.email} manziliga taklif qayta yuborildi (DEMO)`
-        : `${u.email} manziliga parolni tiklash havolasi yuborildi (DEMO)`,
-    );
+  const resetPassword = (u) => setForm({ open: true, user: u });
 
   const exportCsv = () => {
     const source = selected.size ? list.filter((u) => selected.has(u.id)) : filtered;
-    const header = ['ID', 'Familiya', 'Ism', 'Email', 'Telefon', 'Rol', 'Holati', 'Oxirgi kirish', 'Qo‘shilgan sana', 'Izoh'];
+    const header = ['ID', 'Familiya', 'Ism', 'Login', 'Telefon', 'Rol', 'Holati', 'Oxirgi kirish', 'Qo‘shilgan sana', 'Izoh'];
     const body = source.map((u) => [
-      u.id, u.lastName, u.firstName, u.email, formatPhone(u.phone), roleName(u.roleId), USER_STATUSES[u.status].label,
+      u.id, u.lastName, u.firstName, u.login || u.email?.split('@')[0] || '', formatPhone(u.phone), roleName(u.roleId), USER_STATUSES[u.status].label,
       u.lastLoginAt ? formatDateTime(u.lastLoginAt) : '', formatDate(u.createdAt), u.note,
     ]);
     downloadCsv('foydalanuvchilar.csv', [header, ...body]);
@@ -267,8 +252,8 @@ const UsersTab = ({ access }) => {
     { label: 'Profilni ko‘rish', icon: Eye, onClick: () => setViewId(u.id) },
     { label: 'Tahrirlash', icon: Pencil, onClick: () => setForm({ open: true, user: u }) },
     {
-      label: u.status === 'invited' ? 'Taklifni qayta yuborish' : 'Parolni tiklash',
-      icon: u.status === 'invited' ? Mail : KeyRound,
+      label: 'Login yoki parolni o‘zgartirish',
+      icon: KeyRound,
       hidden: u.status === 'blocked',
       onClick: () => resetPassword(u),
     },
@@ -314,7 +299,7 @@ const UsersTab = ({ access }) => {
               <input
                 type="search"
                 className="input"
-                placeholder="Ism, email, ID yoki telefon…"
+                placeholder="Ism, login, ID yoki telefon…"
                 aria-label="Foydalanuvchilarni qidirish"
                 value={query}
                 onChange={(e) => changeQuery(e.target.value)}
@@ -427,7 +412,7 @@ const UsersTab = ({ access }) => {
                           </span>
                         </button>
                       </td>
-                      <td className="col-lg data-table__muted">{u.email}</td>
+                      <td className="col-lg data-table__muted">{u.login || u.email?.split('@')[0] || '—'}</td>
                       <td>
                         {role ? <span className={`badge badge--${role.tone}`}>{role.name}</span> : <span className="badge badge--muted">Noma‘lum</span>}
                       </td>
@@ -444,18 +429,7 @@ const UsersTab = ({ access }) => {
           </div>
         )}
 
-        {filtered.length > 0 && (
-          <Pagination
-            page={safePage}
-            pageSize={pageSize}
-            total={filtered.length}
-            onPageChange={(p) => setPage(Math.min(Math.max(1, p), pageCount))}
-            onPageSizeChange={(n) => {
-              setPageSize(n);
-              setPage(1);
-            }}
-          />
-        )}
+        
       </Card>
 
       <UserFormModal

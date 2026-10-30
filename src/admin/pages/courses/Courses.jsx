@@ -20,6 +20,7 @@ import {
 import StatCard from '../../components/StatCard';
 import RowMenu from '../../components/ui/RowMenu';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
+import useReceptionPermissions from '../../../Reception/useReceptionPermissions';
 import { useToast } from '../../components/ui/useToast';
 import { formatMoney, formatNumber, formatSom } from '../../utils/format';
 import { useStudents } from '../students/useStudents';
@@ -40,6 +41,10 @@ const SORTS = [
 ];
 
 const Courses = () => {
+  const can = useReceptionPermissions();
+  const canCreate = can('courses', 'create');
+  const canEdit = can('courses', 'edit');
+  const canDelete = can('courses', 'delete');
   const toast = useToast();
   const { courses, add, update, remove, restore } = useCourses();
   // Talabalar va ustozlar faqat o‘qiladi: kurs ko‘rsatkichlari shulardan hisoblanadi
@@ -103,6 +108,7 @@ const Courses = () => {
 
   // ---------- Amallar ----------
   const handleSubmit = (data) => {
+    if (form.course ? !canEdit : !canCreate) return;
     if (form.course) {
       update(form.course.id, data);
       toast.success(`“${data.name}” kursi saqlandi`);
@@ -130,6 +136,7 @@ const Courses = () => {
   };
 
   const confirmDelete = () => {
+    if (!canDelete || !toDelete) return;
     const removed = remove([toDelete.id]);
     setToDelete(null);
     setViewId(null);
@@ -137,6 +144,7 @@ const Courses = () => {
   };
 
   const changeStatus = (course, next) => {
+    if (!canEdit) return;
     update(course.id, { status: next });
     toast.success(next === 'archived' ? `“${course.name}” arxivga o‘tkazildi` : `“${course.name}” qayta faollashtirildi`);
   };
@@ -147,7 +155,7 @@ const Courses = () => {
     { label: 'Arxivga o‘tkazish', icon: Archive, hidden: c.status !== 'active', onClick: () => changeStatus(c, 'archived') },
     { label: 'Faollashtirish', icon: ArchiveRestore, hidden: c.status === 'active', onClick: () => changeStatus(c, 'active') },
     { label: 'O‘chirish', icon: Trash2, tone: 'danger', divider: true, onClick: () => requestDelete(c) },
-  ];
+  ].filter((item) => item.icon === Eye || (item.icon === Pencil && canEdit) || ([Archive, ArchiveRestore].includes(item.icon) && canEdit) || (item.icon === Trash2 && canDelete));
 
   const openCreate = () => setForm({ open: true, course: null });
 
@@ -159,9 +167,9 @@ const Courses = () => {
           <p>O‘quv markazi kurslari: narx, dastur, guruhlar va ustozlar</p>
         </div>
         <div className="page-head__actions">
-          <button type="button" className="btn btn--primary" onClick={openCreate}>
+          {canCreate && <button type="button" className="btn btn--primary" onClick={openCreate}>
             <Plus size={16} /> Yangi kurs
-          </button>
+          </button>}
         </div>
       </header>
 
@@ -227,7 +235,7 @@ const Courses = () => {
               ? 'Birinchi kursni qo‘shib, ishni boshlang.'
               : 'Qidiruv yoki filtr shartlariga mos kurs yo‘q.'}
           </p>
-          {courses.length === 0 ? (
+          {courses.length === 0 && canCreate ? (
             <button type="button" className="btn btn--primary" onClick={openCreate}>
               <Plus size={16} /> Yangi kurs
             </button>
@@ -291,9 +299,9 @@ const Courses = () => {
         students={students}
         teachers={teachers}
         onClose={() => setViewId(null)}
-        onEdit={(c) => setForm({ open: true, course: c })}
-        onDelete={requestDelete}
-        onToggleArchive={(c) => changeStatus(c, c.status === 'active' ? 'archived' : 'active')}
+        onEdit={canEdit ? (c) => setForm({ open: true, course: c }) : null}
+        onDelete={canDelete ? requestDelete : null}
+        onToggleArchive={canEdit ? (c) => changeStatus(c, c.status === 'active' ? 'archived' : 'active') : null}
       />
 
       <ConfirmDialog

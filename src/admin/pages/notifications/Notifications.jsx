@@ -17,7 +17,6 @@ import {
 } from 'lucide-react';
 import StatCard from '../../components/StatCard';
 import Card from '../../components/Card';
-import Pagination from '../../components/ui/Pagination';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/useToast';
 import { CATEGORY_OPTIONS, PRIORITIES, PRIORITY_OPTIONS, categoryOf } from '../../activity/meta';
@@ -49,8 +48,6 @@ const Notifications = () => {
   const [category, setCategory] = useState('all');
   const [priority, setPriority] = useState('all');
   const [query, setQuery] = useState('');
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
   const [selected, setSelected] = useState(() => new Set());
   const [confirmClear, setConfirmClear] = useState(false);
 
@@ -78,10 +75,7 @@ const Notifications = () => {
         (!q || `${n.title} ${n.message}`.toLowerCase().includes(q)),
     );
   }, [items, tab, category, priority, query]);
-
-  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const safePage = Math.min(page, pageCount);
-  const rows = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
+  const rows = filtered;
   const groups = useMemo(() => groupByDay(rows), [rows]);
 
   const hasFilters = query.trim() !== '' || category !== 'all' || priority !== 'all';
@@ -95,7 +89,7 @@ const Notifications = () => {
   }, [pageSome, pageSelected]);
 
   const resetView = () => {
-    setPage(1);
+    
     setSelected(new Set());
   };
   const changeTab = (v) => { setTab(v); resetView(); };
@@ -333,13 +327,7 @@ const Notifications = () => {
               </section>
             ))}
 
-            <Pagination
-              page={safePage}
-              pageSize={pageSize}
-              total={filtered.length}
-              onPageChange={(p) => { setPage(p); setSelected(new Set()); }}
-              onPageSizeChange={(s) => { setPageSize(s); resetView(); }}
-            />
+            
           </>
         )}
       </Card>

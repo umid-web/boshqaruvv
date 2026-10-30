@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { AlertTriangle, CalendarDays, CalendarCheck, DoorOpen, Layers, Search, X } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { AlertTriangle, CalendarDays, CalendarCheck, Clock3, DoorOpen, Layers, MapPin } from 'lucide-react';
 import StatCard from '../../components/StatCard';
 import Card from '../../components/Card';
 import { useToast } from '../../components/ui/useToast';
@@ -10,94 +10,78 @@ import { useSupportTeachers } from '../support-teachers/supportStore';
 import { useCourses } from '../courses/coursesStore';
 import { useGroups } from '../groups/groupsStore';
 import { getGroupTeam } from '../groups/groupsData';
-import { TimelineHead, TimelineRow } from './Timeline';
 import LessonEditModal from './LessonEditModal';
-import { SCHEDULE_DAYS, buildRows, findAllConflicts, findDayConflicts, getRange, lessonsOn } from './scheduleData';
+import { SCHEDULE_DAYS, buildRows, findAllConflicts } from './scheduleData';
 import '../students/Students.scss';
 import '../teachers/Teachers.scss';
 import './Schedule.scss';
-
-const MODES = [
-  { value: 'teacher', label: 'Ustozlar' },
-  { value: 'room', label: 'Xonalar' },
-];
+import useReceptionPermissions from '../../../Reception/useReceptionPermissions';
 
 const todayDay = () => {
-  const d = new Date().getDay();
-  return d === 0 ? 1 : d; // yakshanba — dars yo‘q, dushanbani ko‘rsatamiz
+  const day = new Date().getDay();
+  return day === 0 ? 1 : day;
 };
+const toMinutes = (time) => { const [hours, minutes] = time.split(':').map(Number); return hours * 60 + minutes; };
+const toTime = (minutes) => `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
+const TIME_OPTIONS = Array.from({ length: 25 }, (_, index) => toTime(8 * 60 + index * 30)).filter((time) => time <= '20:00');
+const DAY_NAMES = Object.fromEntries(SCHEDULE_DAYS.map((day) => [day.value, day.full]));
 
 const Schedule = () => {
+  const basePath = useLocation().pathname.startsWith('/reception') ? '/reception' : '/admin';
+  const canEdit = useReceptionPermissions()('schedule', 'edit');
   const toast = useToast();
   const { groups, update } = useGroups();
   const { teachers } = useTeachers();
   const { supportTeachers } = useSupportTeachers();
   const { courses } = useCourses();
-
-  const [mode, setMode] = useState('teacher');
-  const [view, setView] = useState('day'); // day: tanlangan kun, barcha qatorlar · week: bitta qator, butun hafta
   const [day, setDay] = useState(todayDay);
-  const [entity, setEntity] = useState('');
   const [query, setQuery] = useState('');
-  const [onlyBusy, setOnlyBusy] = useState(false);
+  const [duration, setDuration] = useState(90);
+  const [selectedDay, setSelectedDay] = useState(todayDay);
+  const [selectedTime, setSelectedTime] = useState('09:00');
   const [editCode, setEditCode] = useState(null);
 
-  const range = useMemo(() => getRange(groups), [groups]);
+  const activeGroups = useMemo(() => groups.filter((group) => group.status === 'active'), [groups]);
+  const rooms = useMemo(() => [...new Set(groups.map((group) => group.room).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'uz', { numeric: true })), [groups]);
+  const scheduleTimes = useMemo(() => [...new Set(activeGroups.map((group) => group.start))].sort(), [activeGroups]);
+  const teams = useMemo(() => new Map(groups.map((group) => [group.code, getGroupTeam(group.code, teachers, supportTeachers)])), [groups, teachers, supportTeachers]);
   const colorOf = useMemo(() => {
-    const map = new Map(courses.map((c) => [c.name, c.color]));
-    return (course) => map.get(course) ?? 'primary';
+    const colors = new Map(courses.map((course) => [course.name, course.color]));
+    return (course) => colors.get(course) || 'primary';
   }, [courses]);
-
-  const rowsByMode = useMemo(
-    () => ({
-      teacher: buildRows('teacher', groups, teachers, supportTeachers),
-      room: buildRows('room', groups, teachers, supportTeachers),
-    }),
-    [groups, teachers, supportTeachers],
-  );
-  const rows = rowsByMode[mode];
-
-  const teamByCode = useMemo(() => {
-    const map = new Map();
-    for (const g of groups) map.set(g.code, getGroupTeam(g.code, teachers, supportTeachers));
-    return map;
-  }, [groups, teachers, supportTeachers]);
-
+  const rowsByMode = useMemo(() => ({
+    teacher: buildRows('teacher', groups, teachers, supportTeachers),
+    room: buildRows('room', groups, teachers, supportTeachers),
+  }), [groups, teachers, supportTeachers]);
   const conflicts = useMemo(() => findAllConflicts(rowsByMode), [rowsByMode]);
+  const todayLessons = activeGroups.filter((group) => group.days.includes(todayDay())).length;
+  const weeklyCount = activeGroups.reduce((count, group) => count + group.days.length, 0);
+  const rangeStart = new Date();
+  rangeStart.setDate(rangeStart.getDate() - ((rangeStart.getDay() + 6) % 7));
+  rangeStart.setHours(0, 0, 0, 0);
+  const weekDates = SCHEDULE_DAYS.map((weekday) => {
+    const date = new Date(rangeStart);
+    date.setDate(date.getDate() + weekday.value - 1);
+    return date;
+  });
 
-  const summary = useMemo(() => {
-    const active = groups.filter((g) => g.status === 'active');
-    const today = todayDay();
-    return {
-      weekly: active.reduce((sum, g) => sum + g.days.length, 0),
-      today: active.filter((g) => g.days.includes(today)).length,
-      rooms: rowsByMode.room.length,
-    };
-  }, [groups, rowsByMode]);
-
-  // Darsda ko‘rinadigan yozuv: ustoz rejimida — vaqt va xona, xona rejimida — vaqt va asosiy ustoz
-  const describe = (g) => {
-    if (mode === 'room') {
-      const main = teamByCode.get(g.code)?.main;
-      return { title: g.code, sub: `${g.start}–${g.end} · ${main ? main.lastName : 'ustozsiz'}` };
-    }
-    return { title: g.code, sub: `${g.start}–${g.end} · ${g.room}` };
-  };
-
-  const q = query.trim().toLowerCase();
-  const visibleRows = rows.filter((r) => (!q || `${r.title} ${r.subtitle}`.toLowerCase().includes(q)) && (!onlyBusy || lessonsOn(r, day).length > 0));
-  const weekRow = rows.find((r) => r.key === entity) ?? rows[0] ?? null;
-
-  const conflictCodesFor = (lessons) => new Set(findDayConflicts(lessons).flat().map((g) => g.code));
-  const editGroup = groups.find((g) => g.code === editCode) ?? null;
-
-  const changeMode = (value) => {
-    setMode(value);
-    setEntity('');
-  };
+  const availableRooms = rooms.map((room) => {
+    const lesson = activeGroups.find((group) => group.room === room && group.days.includes(selectedDay)
+      && toMinutes(group.start) < toMinutes(selectedTime) + Number(duration)
+      && toMinutes(selectedTime) < toMinutes(group.end));
+    return { room, lesson };
+  });
+  const freeRooms = availableRooms.filter((item) => !item.lesson);
+  const q = query.trim().toLocaleLowerCase('uz');
+  const getCellLessons = (weekday, time) => activeGroups
+    .filter((group) => group.days.includes(weekday) && group.start === time)
+    .filter((group) => !q || `${group.code} ${group.course} ${group.room} ${teams.get(group.code)?.main?.lastName ?? ''}`.toLocaleLowerCase('uz').includes(q))
+    .sort((a, b) => a.code.localeCompare(b.code, 'uz'));
+  const editGroup = groups.find((group) => group.code === editCode) ?? null;
 
   const handleSave = (patch) => {
-    const before = groups.find((g) => g.code === editCode);
+    if (!canEdit) return;
+    const before = groups.find((group) => group.code === editCode);
     update(editCode, patch);
     toast.success(`${editCode} darsi yangilandi`, {
       action: { label: 'Qaytarish', onClick: () => update(before.code, { days: before.days, start: before.start, end: before.end, room: before.room }) },
@@ -106,183 +90,66 @@ const Schedule = () => {
   };
 
   return (
-    <div className="students-page teachers-page schedule-page">
+    <div className="students-page teachers-page schedule-page schedule-calendar-page">
       <header className="page-head">
-        <div>
-          <h1>Dars jadvali</h1>
-          <p>Ustozlar va xonalarning band hamda bo‘sh vaqti. Bir xonada bir vaqtda faqat bitta dars, bir ustoz bir vaqtda faqat bitta guruhda</p>
-        </div>
-        <div className="page-head__actions">
-          <Link to="/admin/groups" className="btn btn--secondary">
-            <Layers size={16} /> Guruhlar
-          </Link>
-        </div>
+        <div><span className="schedule-eyebrow">HAFTALIK REJA</span><h1>Dars jadvali</h1><p>Markazdagi faol darslar va tanlangan vaqtda bo‘sh xonalar.</p></div>
+        <div className="page-head__actions"><Link to={`${basePath}/groups`} className="btn btn--secondary"><Layers size={16}/> Guruhlar</Link></div>
       </header>
 
       <section className="students-stats" aria-label="Jadval ko‘rsatkichlari">
-        <StatCard title="Haftalik darslar" value={formatNumber(summary.weekly)} icon={CalendarDays} tone="primary" />
-        <StatCard title="Bugungi darslar" value={formatNumber(summary.today)} icon={CalendarCheck} tone="success" />
-        <StatCard title="Xonalar" value={formatNumber(summary.rooms)} icon={DoorOpen} tone="warning" />
-        <StatCard title="Vaqt ziddiyatlari" value={formatNumber(conflicts.length)} icon={AlertTriangle} tone={conflicts.length ? 'danger' : 'success'} />
+        <StatCard title="Haftalik darslar" value={formatNumber(weeklyCount)} icon={CalendarDays} tone="primary"/>
+        <StatCard title="Bugungi darslar" value={formatNumber(todayLessons)} icon={CalendarCheck} tone="success"/>
+        <StatCard title="Xonalar" value={formatNumber(rooms.length)} icon={DoorOpen} tone="warning"/>
+        <StatCard title="Vaqt ziddiyatlari" value={formatNumber(conflicts.length)} icon={AlertTriangle} tone={conflicts.length ? 'danger' : 'success'}/>
       </section>
 
-      {conflicts.length > 0 && (
-        <div className="schedule-alert" role="alert">
-          <AlertTriangle size={18} />
-          <div>
-            <strong>Vaqti kesishgan darslar topildi</strong>
-            <ul>
-              {conflicts.slice(0, 5).map((c, i) => (
-                <li key={`${c.rowKey}-${c.dayValue}-${i}`}>
-                  {c.row} · {c.day}: {c.a} va {c.b}
-                </li>
-              ))}
-              {conflicts.length > 5 && <li>…va yana {conflicts.length - 5} ta</li>}
-            </ul>
-            <span>Darsni bosib, vaqti yoki xonasini o‘zgartiring.</span>
+      {conflicts.length > 0 && <div className="schedule-alert" role="alert"><AlertTriangle size={18}/><div><strong>Vaqti kesishgan darslar topildi</strong><ul>{conflicts.slice(0, 4).map((conflict, index) => <li key={`${conflict.rowKey}-${conflict.dayValue}-${index}`}>{conflict.row} · {conflict.day}: {conflict.a} va {conflict.b}</li>)}</ul></div></div>}
+
+      <div className="schedule-workspace">
+        <Card className="schedule-calendar-card" title="Haftalik darslar" subtitle={`${activeGroups.length} ta faol guruh · sana va vaqt bo‘yicha`}>
+          <div className="schedule-toolbar">
+            <label className="schedule-search"><CalendarDays size={16}/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Guruh, kurs, xona yoki ustozni qidirish"/></label>
+            <div className="schedule-day-pick" aria-label="Ko‘rilayotgan hafta kuni">{SCHEDULE_DAYS.map((weekday) => <button key={weekday.value} type="button" className={day === weekday.value ? 'is-active' : ''} onClick={() => { setDay(weekday.value); setSelectedDay(weekday.value); }}>{weekday.short}</button>)}</div>
           </div>
-        </div>
-      )}
+          <div className="schedule-calendar-scroll"><div className="schedule-calendar-grid" style={{ '--schedule-days': weekDates.length }}>
+            <div className="schedule-calendar__time-head"><Clock3 size={14}/></div>
+            {weekDates.map((date) => {
+              const weekday = date.getDay();
+              const count = activeGroups.filter((group) => group.days.includes(weekday)).length;
+              return <div className={`schedule-calendar__day${weekday === day ? ' is-selected' : ''}${weekday === todayDay() ? ' is-today' : ''}`} key={weekday} onClick={() => { setDay(weekday); setSelectedDay(weekday); }} role="button" tabIndex={0} onKeyDown={(event) => event.key === 'Enter' && (setDay(weekday), setSelectedDay(weekday))}><span>{DAY_NAMES[weekday]}</span><strong>{String(date.getDate()).padStart(2, '0')}.{String(date.getMonth() + 1).padStart(2, '0')}</strong><small>{count} ta dars</small></div>;
+            })}
+            {scheduleTimes.map((time) => <div className="schedule-calendar__row" key={time}>
+              <div className="schedule-calendar__time">{time}</div>
+              {weekDates.map((date) => {
+                const weekday = date.getDay();
+                const lessons = getCellLessons(weekday, time);
+                return <div className={`schedule-calendar__cell${weekday === day ? ' is-selected' : ''}`} key={`${weekday}-${time}`}>
+                  {lessons.map((group) => {
+                    const main = teams.get(group.code)?.main;
+                    const lesson = <><span className="schedule-event__range">{group.start}–{group.end}</span><strong>{group.course}</strong><span className="schedule-event__group">{group.code}</span><span className="schedule-event__room"><MapPin size={12}/>{group.room}</span><span className="schedule-event__teacher">{main ? `${main.lastName} ${main.firstName}` : 'Ustoz biriktirilmagan'}</span></>;
+                    return canEdit
+                      ? <button type="button" className={`schedule-event schedule-event--${colorOf(group.course)}`} key={group.code} onClick={() => setEditCode(group.code)}>{lesson}</button>
+                      : <article className={`schedule-event schedule-event--${colorOf(group.course)}`} key={group.code}>{lesson}</article>;
+                  })}
+                </div>;
+              })}
+            </div>)}
+            {!scheduleTimes.length && <div className="schedule-calendar__empty">Faol dars jadvali hozircha mavjud emas.</div>}
+          </div></div>
+        </Card>
 
-      <Card className="students-card">
-        <div className="toolbar">
-          <div className="status-tabs" role="tablist" aria-label="Jadval turi">
-            {MODES.map((m) => (
-              <button
-                key={m.value}
-                type="button"
-                role="tab"
-                aria-selected={mode === m.value}
-                className={mode === m.value ? 'status-tab is-active' : 'status-tab'}
-                onClick={() => changeMode(m.value)}
-              >
-                {m.label}
-                <span className="status-tab__count">{formatNumber(rowsByMode[m.value].length)}</span>
-              </button>
-            ))}
-          </div>
+        <Card className="room-availability-card" title="Bo‘sh xonalar" subtitle="Tanlangan kun va vaqt kesimida">
+          <div className="room-picker__days">{SCHEDULE_DAYS.map((weekday) => <button key={weekday.value} type="button" className={selectedDay === weekday.value ? 'is-active' : ''} onClick={() => setSelectedDay(weekday.value)}>{weekday.short}</button>)}</div>
+          <div className="room-picker__fields"><label className="field"><span className="field__label">Boshlanish vaqti</span><select className="input" value={selectedTime} onChange={(event) => setSelectedTime(event.target.value)}>{TIME_OPTIONS.map((time) => <option key={time}>{time}</option>)}</select></label><label className="field"><span className="field__label">Davomiyligi</span><select className="input" value={duration} onChange={(event) => setDuration(Number(event.target.value))}><option value={60}>1 soat</option><option value={90}>1 soat 30 daqiqa</option><option value={120}>2 soat</option></select></label></div>
+          <div className="room-availability__period"><Clock3 size={15}/>{DAY_NAMES[selectedDay]}, {selectedTime}–{toTime(toMinutes(selectedTime) + Number(duration))}</div>
+          <div className="room-availability__summary"><strong>{freeRooms.length}</strong><span>ta xona bo‘sh</span><i>{availableRooms.length} ta xonadan</i></div>
+          <div className="room-availability__list">{availableRooms.map(({ room, lesson }) => <div key={room} className={`room-availability__item${lesson ? ' is-busy' : ' is-free'}`}><span className="room-availability__dot"/><div><strong>{room}</strong>{lesson ? <small>{lesson.code} · {lesson.start}–{lesson.end}</small> : <small>Tanlangan vaqt uchun bo‘sh</small>}</div><span className="room-availability__status">{lesson ? 'Band' : 'Bo‘sh'}</span></div>)}{!availableRooms.length && <p className="room-availability__empty">Xonalar ro‘yxati topilmadi.</p>}</div>
+        </Card>
+      </div>
 
-          <div className="toolbar__filters">
-            <select className="input" aria-label="Ko‘rinish" value={view} onChange={(e) => setView(e.target.value)}>
-              <option value="day">Kun bo‘yicha (hamma {mode === 'room' ? 'xonalar' : 'ustozlar'})</option>
-              <option value="week">Hafta bo‘yicha (bitta {mode === 'room' ? 'xona' : 'ustoz'})</option>
-            </select>
+      <div className="schedule-legend" aria-label="Kurs ranglari">{courses.filter((course) => course.status === 'active').map((course) => <span className="schedule-legend__item" key={course.id} style={{ '--schedule-accent': `var(--${course.color})` }}>{course.name}</span>)}</div>
 
-            {view === 'day' ? (
-              <>
-                <div className="toolbar__search">
-                  <Search size={16} className="toolbar__search-icon" aria-hidden="true" />
-                  <input
-                    type="search"
-                    className="input"
-                    placeholder={mode === 'room' ? 'Xonani qidirish…' : 'Ustozni qidirish…'}
-                    aria-label="Qidirish"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                  />
-                </div>
-                <button type="button" className={onlyBusy ? 'chip is-active' : 'chip'} aria-pressed={onlyBusy} onClick={() => setOnlyBusy((v) => !v)}>
-                  Faqat darsi borlar
-                </button>
-                {(q || onlyBusy) && (
-                  <button type="button" className="btn btn--ghost" onClick={() => { setQuery(''); setOnlyBusy(false); }}>
-                    <X size={15} /> Tozalash
-                  </button>
-                )}
-              </>
-            ) : (
-              <select className="input" aria-label={mode === 'room' ? 'Xona' : 'Ustoz'} value={weekRow?.key ?? ''} onChange={(e) => setEntity(e.target.value)}>
-                {rows.map((r) => <option key={r.key} value={r.key}>{r.title}</option>)}
-              </select>
-            )}
-          </div>
-
-          {view === 'day' && (
-            <div className="status-tabs" role="tablist" aria-label="Hafta kuni">
-              {SCHEDULE_DAYS.map((d) => (
-                <button
-                  key={d.value}
-                  type="button"
-                  role="tab"
-                  aria-selected={day === d.value}
-                  className={day === d.value ? 'status-tab is-active' : 'status-tab'}
-                  onClick={() => setDay(d.value)}
-                >
-                  {d.full}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="schedule-legend" aria-label="Belgilar">
-          {courses.filter((c) => c.status === 'active').map((c) => (
-            <span key={c.id} className="schedule-legend__item" style={{ '--lc': `var(--${c.color})` }}>{c.name}</span>
-          ))}
-          <span className="schedule-legend__item schedule-legend__item--free">Bo‘sh vaqt — bloklar orasidagi joy</span>
-        </div>
-
-        <div className="tl-scroll">
-          <div className="tl">
-            {view === 'day' ? (
-              <>
-                <TimelineHead range={range} first={mode === 'room' ? 'Xona' : 'Ustoz'} />
-                {visibleRows.length === 0 ? (
-                  <p className="empty-text">{rows.length === 0 ? 'Jadval uchun ma’lumot yo‘q' : 'Mos qator topilmadi'}</p>
-                ) : (
-                  visibleRows.map((r) => {
-                    const lessons = lessonsOn(r, day);
-                    return (
-                      <TimelineRow
-                        key={r.key}
-                        title={r.title}
-                        subtitle={r.subtitle}
-                        badge={r.status === 'vacation' ? <span className="badge badge--info">Ta‘tilda</span> : null}
-                        lessons={lessons}
-                        range={range}
-                        describe={describe}
-                        colorOf={colorOf}
-                        conflictCodes={conflictCodesFor(lessons)}
-                        onOpen={(g) => setEditCode(g.code)}
-                      />
-                    );
-                  })
-                )}
-              </>
-            ) : weekRow ? (
-              <>
-                <TimelineHead range={range} first={weekRow.title} />
-                {SCHEDULE_DAYS.map((d) => {
-                  const lessons = lessonsOn(weekRow, d.value);
-                  return (
-                    <TimelineRow
-                      key={d.value}
-                      who={<strong>{d.full}</strong>}
-                      lessons={lessons}
-                      range={range}
-                      describe={describe}
-                      colorOf={colorOf}
-                      conflictCodes={conflictCodesFor(lessons)}
-                      onOpen={(g) => setEditCode(g.code)}
-                    />
-                  );
-                })}
-              </>
-            ) : (
-              <p className="empty-text">Jadval uchun ma’lumot yo‘q</p>
-            )}
-          </div>
-        </div>
-      </Card>
-
-      <LessonEditModal
-        group={editGroup}
-        groups={groups}
-        teachers={teachers}
-        supportTeachers={supportTeachers}
-        onClose={() => setEditCode(null)}
-        onSubmit={handleSave}
-      />
+      <LessonEditModal group={editGroup} groups={groups} teachers={teachers} supportTeachers={supportTeachers} onClose={() => setEditCode(null)} onSubmit={handleSave}/>
     </div>
   );
 };

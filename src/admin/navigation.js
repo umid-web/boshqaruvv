@@ -44,6 +44,7 @@ export const navSections = [
       { path: 'payments', label: 'To‘lovlar', icon: CreditCard },
       { path: 'debts', label: 'Qarzdorlik', icon: Receipt },
       { path: 'expenses', label: 'Xarajatlar', icon: Banknote },
+      { path: 'salaries', label: 'Ish haqi', icon: Wallet },
     ],
   },
   {

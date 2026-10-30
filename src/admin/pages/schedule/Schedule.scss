@@ -39,12 +39,47 @@ $info-w: 190px;
       width: 10px;
       height: 10px;
       border-radius: 3px;
-      background: var(--lc, var(--border));
+      background: var(--schedule-accent, var(--border));
     }
 
     &--free::before { background: transparent; border: 1px dashed var(--text-muted); }
   }
 }
+
+.schedule-eyebrow { display: block; margin-bottom: 0.25rem; color: var(--primary); font-size: 0.68rem; font-weight: 800; letter-spacing: 0.12em; }
+.schedule-workspace { display: grid; grid-template-columns: minmax(0, 1fr) 310px; align-items: start; gap: 1rem; }
+.schedule-calendar-card,
+.room-availability-card { min-width: 0; overflow: hidden; border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 5px 18px rgba(18, 38, 70, 0.045); }
+.schedule-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.85rem; }
+.schedule-search { display: flex; min-width: 180px; flex: 1; align-items: center; gap: 0.55rem; padding: 0 0.75rem; border: 1px solid var(--border); border-radius: 9px; background: var(--surface); color: var(--text-muted); &:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 12%, transparent); } input { width: 100%; min-height: 40px; border: 0; outline: 0; background: transparent; color: var(--text); font: inherit; font-size: 0.82rem; } }
+.schedule-day-pick,
+.room-picker__days { display: flex; flex-wrap: wrap; gap: 0.25rem; padding: 0.25rem; border: 1px solid var(--border); border-radius: 9px; background: var(--surface-2); button { min-width: 35px; min-height: 31px; padding: 0 0.5rem; border: 0; border-radius: 7px; background: transparent; color: var(--text-muted); cursor: pointer; font: inherit; font-size: 0.75rem; font-weight: 700; &:hover { color: var(--primary); } &.is-active { background: var(--primary); color: #fff; box-shadow: 0 2px 6px color-mix(in srgb, var(--primary) 25%, transparent); } } }
+.schedule-calendar-scroll { overflow: auto; overscroll-behavior-inline: contain; border: 1px solid var(--border); border-radius: 10px; }
+.schedule-calendar-grid { display: grid; min-width: 1050px; grid-template-columns: 64px repeat(var(--schedule-days), minmax(138px, 1fr)); background: var(--surface); }
+.schedule-calendar__time-head,
+.schedule-calendar__day { position: sticky; top: 0; z-index: 3; display: flex; min-height: 71px; flex-direction: column; align-items: center; justify-content: center; gap: 0.2rem; padding: 0.55rem 0.35rem; border-bottom: 1px solid var(--border); background: var(--surface); }
+.schedule-calendar__time-head { left: 0; z-index: 5; color: var(--text-muted); }
+.schedule-calendar__day { border-left: 1px solid var(--border); cursor: pointer; span { color: var(--text-muted); font-size: 0.72rem; font-weight: 650; } strong { color: var(--text); font-size: 0.95rem; } small { color: var(--text-muted); font-size: 0.64rem; } &.is-today { background: color-mix(in srgb, var(--primary) 5%, var(--surface)); span, strong { color: var(--primary); } } &.is-selected { box-shadow: inset 0 -3px var(--primary); } }
+.schedule-calendar__row { display: contents; }
+.schedule-calendar__time { position: sticky; left: 0; z-index: 2; padding-top: 0.8rem; border-bottom: 1px solid var(--border); background: var(--surface); color: var(--text-muted); font-size: 0.7rem; font-weight: 750; text-align: center; font-variant-numeric: tabular-nums; }
+.schedule-calendar__cell { display: flex; min-height: 132px; flex-direction: column; gap: 0.45rem; padding: 0.45rem; border-left: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--surface); &.is-selected { background: color-mix(in srgb, var(--primary) 2.5%, var(--surface)); } }
+.schedule-calendar__empty { grid-column: 2 / -1; padding: 2.2rem; color: var(--text-muted); text-align: center; }
+.schedule-event { display: flex; min-height: 108px; flex-direction: column; align-items: flex-start; gap: 0.26rem; padding: 0.58rem 0.62rem; overflow: hidden; border: 1px solid color-mix(in srgb, var(--schedule-accent, var(--primary)) 20%, transparent); border-left: 3px solid var(--schedule-accent, var(--primary)); border-radius: 8px; background: color-mix(in srgb, var(--schedule-accent, var(--primary)) 8%, var(--surface)); color: var(--text); text-align: left; box-shadow: 0 2px 5px rgba(20, 37, 63, 0.04); &--success { --schedule-accent: var(--success); } &--warning { --schedule-accent: var(--warning); } &--danger { --schedule-accent: var(--danger); } &__range { color: var(--schedule-accent, var(--primary)); font-size: 0.66rem; font-weight: 800; font-variant-numeric: tabular-nums; } strong { max-width: 100%; overflow: hidden; font-size: 0.77rem; line-height: 1.3; text-overflow: ellipsis; } &__group { color: var(--text-muted); font-size: 0.67rem; font-weight: 750; } &__room { display: flex; align-items: center; gap: 0.25rem; margin-top: auto; color: var(--text-muted); font-size: 0.65rem; } &__teacher { max-width: 100%; overflow: hidden; color: var(--text-muted); font-size: 0.65rem; text-overflow: ellipsis; white-space: nowrap; } }
+.schedule-calendar-card .card__body { min-width: 0; }
+.room-picker__days { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); margin-bottom: 0.9rem; button { min-width: 0; padding: 0; } }
+.room-picker__fields { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; .field { min-width: 0; } .field__label { font-size: 0.72rem; } .input { min-width: 0; padding-inline: 0.55rem; font-size: 0.78rem; } }
+.room-availability__period { display: flex; align-items: center; gap: 0.45rem; margin: 0.85rem 0; padding: 0.65rem 0.7rem; border-radius: 8px; background: color-mix(in srgb, var(--primary) 7%, var(--surface)); color: var(--text-muted); font-size: 0.76rem; }
+.room-availability__summary { display: flex; align-items: baseline; gap: 0.45rem; padding: 0.9rem 0; border-bottom: 1px solid var(--border); strong { color: var(--success); font-size: 1.6rem; letter-spacing: -0.04em; } span { color: var(--text); font-size: 0.84rem; font-weight: 700; } i { margin-left: auto; color: var(--text-muted); font-size: 0.68rem; font-style: normal; } }
+.room-availability__list { display: flex; flex-direction: column; }
+.room-availability__item { display: flex; min-width: 0; align-items: center; gap: 0.6rem; padding: 0.72rem 0; border-bottom: 1px solid var(--border); &:last-child { border-bottom: 0; } > div { display: grid; min-width: 0; flex: 1; gap: 0.18rem; } strong { font-size: 0.82rem; } small { overflow: hidden; color: var(--text-muted); font-size: 0.68rem; text-overflow: ellipsis; white-space: nowrap; } }
+.room-availability__dot { width: 9px; height: 9px; flex: 0 0 9px; border-radius: 50%; background: var(--success); box-shadow: 0 0 0 3px color-mix(in srgb, var(--success) 12%, transparent); }
+.room-availability__item.is-busy .room-availability__dot { background: var(--warning); box-shadow: 0 0 0 3px color-mix(in srgb, var(--warning) 14%, transparent); }
+.room-availability__status { color: var(--success); font-size: 0.68rem; font-weight: 750; }
+.room-availability__item.is-busy .room-availability__status { color: var(--warning); }
+.room-availability__empty { color: var(--text-muted); font-size: 0.78rem; text-align: center; }
+
+@media (max-width: 1280px) { .schedule-workspace { grid-template-columns: minmax(0, 1fr); } .room-availability-card .card__body { display: grid; grid-template-columns: minmax(200px, 0.7fr) minmax(250px, 1fr); column-gap: 1rem; align-items: start; } .room-availability-card .card__body > .room-picker__days, .room-availability-card .card__body > .room-picker__fields { grid-column: 1; } .room-availability-card .card__body > .room-availability__period, .room-availability-card .card__body > .room-availability__summary, .room-availability-card .card__body > .room-availability__list { grid-column: 2; } .room-availability-card .card__body > .room-availability__period { grid-row: 1; } .room-availability-card .card__body > .room-availability__summary { grid-row: 2; } .room-availability-card .card__body > .room-availability__list { grid-row: 3 / span 2; } }
+@media (max-width: 680px) { .schedule-toolbar { align-items: stretch; flex-direction: column; } .schedule-day-pick { justify-content: space-between; } .schedule-calendar-grid { min-width: 990px; } .room-availability-card .card__body { display: block; } .room-picker__days { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
 
 .tl-scroll { overflow-x: auto; }
 .tl { min-width: 960px; padding: 0.5rem 1.25rem 1rem; }

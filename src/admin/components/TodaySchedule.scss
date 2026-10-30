@@ -4,6 +4,14 @@
   overflow-x: auto; // tor ekranda jadval gorizontal scroll bo‘ladi
 }
 
+.today-schedule__free-rooms {
+  margin: 0.75rem 0 0;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--border);
+  color: var(--success);
+  font-size: 0.82rem;
+}
+
 .schedule-table {
   width: 100%;
   min-width: 560px;

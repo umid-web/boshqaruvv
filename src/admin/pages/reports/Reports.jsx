@@ -36,7 +36,7 @@ import { useStudents } from '../students/useStudents';
 import { PAYMENT_STATUSES, STATUSES, getPaymentStatus } from '../students/studentsData';
 import { loadGroups, useGroups } from '../groups/groupsStore';
 import { getGroupStats } from '../groups/groupsData';
-import { EXPENSE_CATEGORIES, isoDate, useExpenses, usePayments } from '../finance/financeStore';
+import { EXPENSE_CATEGORIES, useExpenses, usePayments } from '../finance/financeStore';
 import { useAppSettings } from '../settings/useAppSettings';
 import {
   PERIODS,
@@ -174,9 +174,7 @@ const Reports = () => {
       const date = k.split('|')[1];
       return inRange(date, safeFrom, safeTo);
     });
-    let onTime = 0;
-    let late = 0;
-    let excused = 0;
+    let present = 0;
     let absent = 0;
     const byGroup = {};
     for (const [k, map] of attEntries) {
@@ -184,14 +182,11 @@ const Reports = () => {
       const bucket = (byGroup[code] ??= { present: 0, total: 0, absent: 0 });
       for (const mark of Object.values(map || {})) {
         bucket.total += 1;
-        if (mark === 'p') { onTime += 1; bucket.present += 1; }
-        else if (mark === 'l') { late += 1; bucket.present += 1; }
-        else if (mark === 'e') excused += 1;
-        else if (mark === 'a') { absent += 1; bucket.absent += 1; }
+        if (mark === 'p' || mark === 'l') { present += 1; bucket.present += 1; }
+        else if (mark === 'e' || mark === 'a') { absent += 1; bucket.absent += 1; }
       }
     }
-    const present = onTime + late;
-    const marked = present + excused + absent;
+    const marked = present + absent;
     const attRate = marked ? Math.round((present / marked) * 100) : null;
     const attGroups = Object.entries(byGroup)
       .map(([code, b]) => ({
@@ -239,9 +234,6 @@ const Reports = () => {
       attRate,
       marked,
       present,
-      onTime,
-      late,
-      excused,
       absent,
       attGroups,
       groupRows,
@@ -553,13 +545,12 @@ const Reports = () => {
               <div className="students-stats">
                 <StatCard title="O‘rtacha davomat" value={data.attRate == null ? '—' : `${data.attRate}%`} icon={ClipboardCheck} tone="success" />
                 <StatCard title="Dars kunlari" value={String(data.lessons)} icon={FileText} tone="primary" />
-                <StatCard title="Kechikish" value={String(data.late)} icon={AlertTriangle} tone="warning" />
+                <StatCard title="Keldi" value={String(data.present)} icon={ClipboardCheck} tone="success" />
                 <StatCard title="Kelmadi" value={String(data.absent)} icon={AlertTriangle} tone="danger" />
               </div>
               <ul className="reports-meta">
-                <li>Keldi: <strong>{data.onTime}</strong></li>
-                <li>Kechikdi: <strong>{data.late}</strong></li>
-                <li>Sababli: <strong>{data.excused}</strong></li>
+                <li>Keldi: <strong>{data.present}</strong></li>
+                <li>Kelmadi: <strong>{data.absent}</strong></li>
                 <li>Jami belgi: <strong>{data.marked}</strong></li>
               </ul>
               <Card title="Guruhlar davomati" subtitle="Faqat belgilangan darslar asosida" className="students-card">

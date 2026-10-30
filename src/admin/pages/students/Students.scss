@@ -40,8 +40,25 @@
   @include respond($bp-sm) { grid-template-columns: 1fr; }
 }
 
+.students-overview-stats {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  @include respond($bp-md) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  @include respond($bp-sm) { grid-template-columns: 1fr; }
+}
+
 .students-card .card__body {
   padding: 0;
+}
+
+.students-card .table-wrap {
+  max-height: min(68vh, 720px);
+  overflow: auto;
+}
+
+.students-card .data-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }
 
 /* ============ Toolbar ============ */
@@ -219,6 +236,61 @@
   @media (max-width: 1100px) { .col-md { display: none; } }
   @media (max-width: 640px) { .col-sm { display: none; } }
 }
+
+.student-group-row td {
+  padding: 0.65rem 0.8rem;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+}
+
+.student-group-row strong {
+  margin-right: 0.65rem;
+  color: var(--text);
+  font-weight: 700;
+}
+
+.student-group-row span {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.student-payment-open {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  margin-top: 0.4rem;
+  padding: 0;
+  border: 1px solid var(--primary);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--primary);
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+  &:hover { background: var(--primary-soft); }
+}
+
+.student-payment-form {
+  display: grid;
+  gap: 0.4rem;
+  min-width: 150px;
+  margin-top: 0.5rem;
+  padding: 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-2);
+  label { display: flex; flex-direction: column; gap: 0.2rem; color: var(--text-muted); font-size: 0.7rem; }
+  input { min-width: 0; height: 30px; padding: 0 0.4rem; border: 1px solid var(--border); border-radius: 5px; background: var(--surface); color: var(--text); font: inherit; font-size: 0.75rem; }
+  > div { display: flex; gap: 0.35rem; }
+}
+
+.data-table--archive { min-width: 640px; }
+.data-table--archive .col-lg,
+.data-table--archive .col-md,
+.data-table--archive .col-xl { display: none !important; }
+.data-table--archive .col-sm { display: table-cell; }
 
 .sort-btn {
   display: inline-flex;

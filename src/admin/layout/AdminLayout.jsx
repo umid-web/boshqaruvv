@@ -13,6 +13,8 @@ const AdminLayout = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const { pathname } = useLocation();
   const { unread } = useNotifications();
+  const roleName = sessionStorage.getItem('educontrol_role') === 'teacher' ? 'Ustoz' : 'Administrator';
+  const username = sessionStorage.getItem('educontrol_username') || roleName;
 
   // Tizim eslatmalari (qarzdorlik, davomat, tug‘ilgan kun) — ilova ochilganda, kuniga bir martadan
   useEffect(() => {
@@ -21,7 +23,7 @@ const AdminLayout = () => {
 
   // Sahifa sarlavhasini joriy marshrutga moslab yangilaydi; o‘qilmaganlar soni — "(3)" ko‘rinishida
   useEffect(() => {
-    const segment = pathname.replace(/^\/admin\/?/, '').split('/')[0];
+    const segment = pathname.replace(/^\/(admin|teacher)\/?/, '').split('/')[0];
     const current = navItems.find((item) => item.path === segment);
     const title = current ? `${current.label} · ${APP_NAME}` : APP_NAME;
     document.title = unread > 0 ? `(${unread}) ${title}` : title;
@@ -31,7 +33,7 @@ const AdminLayout = () => {
     <div className="admin-container">
       <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
       <div className="main-content">
-        <Header onMenuClick={() => setMenuOpen(true)} />
+        <Header onMenuClick={() => setMenuOpen(true)} userName={username} roleName={roleName} />
         <main className="page">
           <Suspense fallback={<p className="page__loading">Yuklanmoqda…</p>}>
             <Outlet />

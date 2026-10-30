@@ -31,16 +31,16 @@ const CourseDrawer = ({ course, stats, students, teachers, onClose, onEdit, onDe
       title="Kurs ma'lumotlari"
       footer={
         <>
-          <button type="button" className="btn btn--ghost" onClick={() => onDelete(course)} style={{ marginRight: 'auto', color: 'var(--danger)' }}>
+          {onDelete && <button type="button" className="btn btn--ghost" onClick={() => onDelete(course)} style={{ marginRight: 'auto', color: 'var(--danger)' }}>
             <Trash2 size={16} /> O‘chirish
-          </button>
-          <button type="button" className="btn btn--secondary" onClick={() => onToggleArchive(course)}>
+          </button>}
+          {onToggleArchive && <button type="button" className="btn btn--secondary" onClick={() => onToggleArchive(course)}>
             {archived ? <ArchiveRestore size={16} /> : <Archive size={16} />}
             {archived ? 'Faollashtirish' : 'Arxivga'}
-          </button>
-          <button type="button" className="btn btn--primary" onClick={() => onEdit(course)}>
+          </button>}
+          {onEdit && <button type="button" className="btn btn--primary" onClick={() => onEdit(course)}>
             <Edit3 size={16} /> Tahrirlash
-          </button>
+          </button>}
         </>
       }
     >

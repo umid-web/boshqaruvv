@@ -173,3 +173,26 @@ $sidebar-width: 264px;
     }
   }
 }
+
+.admin-sidebar__logout {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 9px;
+  margin: 0.5rem 0.75rem 1rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--sidebar-border);
+  border-radius: $radius-sm;
+  background: transparent;
+  color: var(--sidebar-text);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition: all $transition-base;
+
+  &:hover {
+    border-color: var(--danger);
+    background: var(--danger-soft);
+    color: var(--danger);
+  }
+}

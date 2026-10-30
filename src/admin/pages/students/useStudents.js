@@ -5,15 +5,28 @@ import { STATUSES, createDemoStudents } from './studentsData';
 // DEMO: ma'lumotlar brauzerda (localStorage) saqlanadi. Backend ulanganda bu hook
 // ichidagi funksiyalar API so‘rovlari (axios) bilan almashtiriladi — sahifa kodi o‘zgarmaydi.
 const STORAGE_KEY = 'edu-students-v1';
+const PAYMENTS_KEY = 'edu-payments-v1';
 
 const load = () => {
   try {
     const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (Array.isArray(parsed)) return parsed;
+    if (Array.isArray(parsed)) {
+      const removedIds = new Set(parsed.filter((student) => student.status === 'dropped').map((student) => student.id));
+      if (removedIds.size) {
+        const remaining = parsed.filter((student) => !removedIds.has(student.id));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(remaining));
+        const payments = JSON.parse(localStorage.getItem(PAYMENTS_KEY));
+        if (Array.isArray(payments)) {
+          localStorage.setItem(PAYMENTS_KEY, JSON.stringify(payments.filter((payment) => !removedIds.has(payment.studentId))));
+        }
+        return remaining;
+      }
+      return parsed;
+    }
   } catch {
     /* buzilgan yoki mavjud bo‘lmagan ma'lumot */
   }
-  return createDemoStudents();
+  return createDemoStudents().filter((student) => student.status !== 'dropped');
 };
 
 // Faoliyat tarixi: talabalar ro‘yxatidagi har bir o‘zgarish shu yerda yoziladi.

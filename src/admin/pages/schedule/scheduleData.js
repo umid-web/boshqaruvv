@@ -48,7 +48,8 @@ export const buildRows = (mode, groups, teachers, supportTeachers) => {
   const active = groups.filter((g) => g.status === 'active');
 
   if (mode === 'room') {
-    const rooms = [...new Set(active.map((g) => g.room))].sort((a, b) => a.localeCompare(b, 'uz', { numeric: true }));
+    // Archived groups still carry the known room inventory, so rooms without active lessons remain visible.
+    const rooms = [...new Set(groups.map((g) => g.room).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'uz', { numeric: true }));
     return rooms.map((room) => {
       const lessons = active.filter((g) => g.room === room);
       return { key: `room:${room}`, kind: 'room', title: room, subtitle: `${lessons.length} ta guruh`, status: 'active', lessons };

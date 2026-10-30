@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Bell,
   Building2,
@@ -619,6 +620,9 @@ const Settings = () => {
                   onChange={(v) => setSec('loginAlerts', v)}
                   label="Yangi qurilmadan kirish haqida xabar"
                 />
+              </div>
+              <div style={{ marginTop: '1rem' }}>
+                <Link className="btn btn--secondary" to="/account/security">O‘z parolimni o‘zgartirish</Link>
               </div>
             </Card>
           )}

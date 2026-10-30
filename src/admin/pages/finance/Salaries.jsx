@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+﻿import { useMemo, useState } from 'react';
 import { Banknote, Download, History, Plus, Search, Trash2, Users, Wallet, AlertTriangle } from 'lucide-react';
 import StatCard from '../../components/StatCard';
 import Card from '../../components/Card';
@@ -65,7 +65,7 @@ const Salaries = () => {
   };
 
   return (
-    <div className="students-page">
+    <div className="students-page finance-page">
       <div className="page-head">
         <div><h1>Ustozlar ish haqi</h1><p>Oylik hisob, avans, mukofot va to‘lovlar nazorati</p></div>
         <div className="page-head__actions">
@@ -109,7 +109,7 @@ const Salaries = () => {
                       <span className="sal-paid">{formatSom(r.paid)} <span className="data-table__muted">· {r.pct}%</span></span>
                     </td>
                     <td><span className={`badge badge--${st.tone}`}>{st.label}</span></td>
-                    <td style={{ textAlign: 'right' }}>{r.left > 0 ? <span className="debt">{formatSom(r.left)}</span> : <span className="data-table__muted">—</span>}</td>
+                    <td style={{ textAlign: 'right' }}>{r.left !== 0 ? <span className="debt">{formatSom(r.left)}</span> : <span className="data-table__muted">—</span>}</td>
                     <td className="fin-actions">
                       <button type="button" className="icon-btn" aria-label="Tarix" onClick={() => setHistoryFor(r.t.id)}><History size={16} /></button>
                       <button type="button" className="btn btn--primary btn--sm" onClick={() => setPayFor(r.t.id)}><Plus size={14} /> Amal</button>
@@ -145,15 +145,15 @@ const Salaries = () => {
 
 const SalaryModal = ({ row, onClose, onSubmit }) => {
   const [kind, setKind] = useState('pay');
-  const [amount, setAmount] = useState(String(row.left || ''));
+  const [amount, setAmount] = useState(String(Math.max(0, row.left) || ''));
   const [method, setMethod] = useState(METHODS[0]);
   const [date, setDate] = useState(isoDate(new Date()));
   const [note, setNote] = useState('');
   const value = Number(amount) || 0;
   const pays = KINDS[kind].sign < 0;
-  const over = pays && value > row.left;
+  const over = pays && value > Math.max(0, row.left);
   const after = pays ? row.left - value : row.left + (kind === 'bonus' ? value : -value);
-  const pick = (k) => { setKind(k); setAmount(KINDS[k].sign < 0 ? String(row.left || '') : ''); };
+  const pick = (k) => { setKind(k); setAmount(KINDS[k].sign < 0 ? String(Math.max(0, row.left) || '') : ''); };
   return (
     <Modal open onClose={onClose} title={teacherName(row.t)} subtitle="Ish haqi bo‘yicha amal" size="sm"
       footer={<><button type="button" className="btn btn--secondary" onClick={onClose}>Bekor qilish</button><button type="button" className="btn btn--primary" disabled={value <= 0} onClick={() => onSubmit({ kind, amount: value, method, date, note: note.trim() })}>Saqlash</button></>}>
@@ -162,7 +162,7 @@ const SalaryModal = ({ row, onClose, onSubmit }) => {
         <div className="sal-summary"><div><span>Hisoblangan</span><strong>{formatSom(row.due)}</strong></div><div><span>To‘langan</span><strong>{formatSom(row.paid)}</strong></div><div><span>Qoldiq</span><strong>{formatSom(row.left)}</strong></div></div>
         <label>Summa (so‘m)<input className="input" type="number" min="1000" step="1000" value={amount} onChange={(e) => setAmount(e.target.value)} /></label>
         {over && <p className="fin-hint fin-hint--warn">Summa qoldiqdan katta — ortiqcha to‘lov bo‘ladi.</p>}
-        {value > 0 && <p className="fin-hint">Amaldan keyin qoldiq: <strong>{formatSom(Math.max(0, after))}</strong></p>}
+        {value > 0 && <p className="fin-hint">Amaldan keyin qoldiq: <strong>{formatSom(after)}</strong></p>}
         {pays && <label>To‘lov usuli<select className="input" value={method} onChange={(e) => setMethod(e.target.value)}>{METHODS.map((m) => <option key={m}>{m}</option>)}</select></label>}
         <label>Sana<input className="input" type="date" value={date} onChange={(e) => setDate(e.target.value)} /></label>
         <label>Izoh (ixtiyoriy)<input className="input" value={note} onChange={(e) => setNote(e.target.value)} placeholder={kind === 'penalty' ? 'Ushlanma sababi' : ''} /></label>
@@ -172,3 +172,4 @@ const SalaryModal = ({ row, onClose, onSubmit }) => {
 };
 
 export default Salaries;
+

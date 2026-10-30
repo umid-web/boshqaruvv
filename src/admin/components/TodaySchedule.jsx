@@ -8,9 +8,11 @@ const STATUS = {
 };
 
 /** Bugungi darslar jadvali. schedule: [{ id, time, subject, group, teacher, room, status }] */
-const TodaySchedule = ({ schedule = [] }) => {
+const TodaySchedule = ({ schedule = [], availableRooms = [], occupiedRooms = null }) => {
+  const occupied = occupiedRooms ?? new Set(schedule.map((item) => item.room).filter(Boolean));
+  const freeRooms = availableRooms.filter((room) => !occupied.has(room));
   if (schedule.length === 0) {
-    return <p className="empty-text">Bugungi darslar topilmadi</p>;
+    return <><p className="empty-text">Bugungi darslar topilmadi</p>{availableRooms.length > 0 && <p className="today-schedule__free-rooms"><strong>Bo‘sh xonalar:</strong> {availableRooms.join(', ')}</p>}</>;
   }
 
   return (
@@ -44,6 +46,7 @@ const TodaySchedule = ({ schedule = [] }) => {
           })}
         </tbody>
       </table>
+      {availableRooms.length > 0 && <p className="today-schedule__free-rooms"><strong>Bugun bo‘sh xonalar:</strong> {freeRooms.length ? freeRooms.join(', ') : 'Bo‘sh xona yo‘q'}</p>}
     </div>
   );
 };

@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import { ArrowDown, ArrowUp, Banknote, ChevronsUpDown, Download, Pencil, Plus, Search, Trash2, TrendingUp, Wallet } from 'lucide-react';
 import StatCard from '../../components/StatCard';
 import Card from '../../components/Card';
-import Pagination from '../../components/ui/Pagination';
 import { useToast } from '../../components/ui/useToast';
 import { downloadCsv } from '../../utils/csv';
 import { formatDate, formatMoney, formatSom } from '../../utils/format';
@@ -23,11 +22,9 @@ const Expenses = () => {
   const { expenses, add, remove, update, restore } = useExpenses();
   const [f, setF] = useState({ q: '', category: 'all', month: 'all' });
   const [sort, setSort] = useState({ key: 'date', dir: 'desc' });
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
   const [modal, setModal] = useState(null); // null | 'new' | expense
 
-  const set = (patch) => { setF((x) => ({ ...x, ...patch })); setPage(1); };
+  const set = (patch) => { setF((x) => ({ ...x, ...patch }));  };
   const now = new Date();
   const months = Array.from({ length: 12 }, (_, i) => {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -50,10 +47,7 @@ const Expenses = () => {
   const income = sum(payments.filter((p) => p.date.startsWith(cur)));
   const split = EXPENSE_CATEGORIES.map((c) => ({ ...c, total: sum(period.filter((e) => e.category === c.value)) })).filter((c) => c.total).sort((a, b) => b.total - a.total);
   const periodTotal = sum(period) || 1;
-
-  const pageCount = Math.max(1, Math.ceil(rows.length / pageSize));
-  const safePage = Math.min(page, pageCount);
-  const visible = rows.slice((safePage - 1) * pageSize, safePage * pageSize);
+  const visible = rows;
   const toggle = (key) => setSort((s) => (s.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: key === 'title' || key === 'category' ? 'asc' : 'desc' }));
 
   const submit = (data) => {
@@ -64,7 +58,7 @@ const Expenses = () => {
   const del = (e) => { remove(e.id); toast.info(`“${e.title}” o‘chirildi`, { action: { label: 'Qaytarish', onClick: () => restore(e) } }); };
 
   return (
-    <div className="students-page">
+    <div className="students-page finance-page">
       <div className="page-head">
         <div><h1>Xarajatlar</h1><p>Markaz xarajatlari nazorati va tahlili</p></div>
         <div className="page-head__actions">
@@ -122,7 +116,7 @@ const Expenses = () => {
               </tbody>
             </table>
           </div>
-          <Pagination page={safePage} pageSize={pageSize} total={rows.length} onPageChange={(p) => setPage(Math.min(Math.max(1, p), pageCount))} onPageSizeChange={(n) => { setPageSize(n); setPage(1); }} />
+          
         </Card>
 
         <Card title="Toifalar bo‘yicha" subtitle={f.month === 'all' ? 'Barcha davr' : months.find((m) => m.value === f.month)?.label}>

@@ -44,15 +44,15 @@ const GroupDrawer = ({ group, students, teachers, supportTeachers, onClose, onEd
       title="Guruh profili"
       footer={
         <>
-          <button type="button" className="btn btn--ghost" onClick={() => onDelete(group)} style={{ marginRight: 'auto', color: 'var(--danger)' }}>
+          {onDelete && <button type="button" className="btn btn--ghost" onClick={() => onDelete(group)} style={{ marginRight: 'auto', color: 'var(--danger)' }}>
             <Trash2 size={16} /> O‘chirish
-          </button>
-          <button type="button" className="btn btn--secondary" onClick={() => onAssign(group)} disabled={group.status === 'archived'}>
+          </button>}
+          {onAssign && <button type="button" className="btn btn--secondary" onClick={() => onAssign(group)} disabled={group.status === 'archived'}>
             <UserPlus size={16} /> Ustozlar
-          </button>
-          <button type="button" className="btn btn--primary" onClick={() => onEdit(group)}>
+          </button>}
+          {onEdit && <button type="button" className="btn btn--primary" onClick={() => onEdit(group)}>
             <Edit3 size={16} /> Tahrirlash
-          </button>
+          </button>}
         </>
       }
     >

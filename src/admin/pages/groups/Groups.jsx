@@ -21,8 +21,8 @@ import {
 import StatCard from '../../components/StatCard';
 import Card from '../../components/Card';
 import RowMenu from '../../components/ui/RowMenu';
-import Pagination from '../../components/ui/Pagination';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
+import useReceptionPermissions from '../../../Reception/useReceptionPermissions';
 import { useToast } from '../../components/ui/useToast';
 import { downloadCsv } from '../../utils/csv';
 import { formatNumber } from '../../utils/format';
@@ -57,6 +57,11 @@ const peopleText = (team) =>
 
 const Groups = () => {
   const toast = useToast();
+  const can = useReceptionPermissions();
+  const canCreate = can('groups', 'create');
+  const canEdit = can('groups', 'edit');
+  const canDelete = can('groups', 'delete');
+  const canExport = can('groups', 'export');
   const { groups, add, update, remove, restore, setStatus } = useGroups();
   const { teachers, update: updateTeacher } = useTeachers();
   const { supportTeachers, update: updateSupport } = useSupportTeachers();
@@ -67,8 +72,6 @@ const Groups = () => {
   const [query, setQuery] = useState('');
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [sort, setSort] = useState({ key: 'code', dir: 'asc' });
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
   const [selected, setSelected] = useState(() => new Set());
 
   const [form, setForm] = useState({ open: false, group: null });
@@ -134,10 +137,7 @@ const Groups = () => {
     const dir = sort.dir === 'asc' ? 1 : -1;
     return [...list].sort((a, b) => sorters[sort.key](a, b) * dir || a.code.localeCompare(b.code));
   }, [groups, query, filters, sort, info]);
-
-  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const safePage = Math.min(page, pageCount);
-  const rows = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
+  const rows = filtered;
 
   const hasFilters = query.trim() !== '' || Object.keys(DEFAULT_FILTERS).some((k) => filters[k] !== DEFAULT_FILTERS[k]);
   const viewGroup = groups.find((g) => g.code === viewCode) ?? null;
@@ -152,7 +152,7 @@ const Groups = () => {
 
   // ---------- Filtr / saralash ----------
   const resetView = () => {
-    setPage(1);
+    
     setSelected(new Set());
   };
   const changeQuery = (value) => {
@@ -170,7 +170,7 @@ const Groups = () => {
   };
   const toggleSort = (key) => {
     setSort((s) => (s.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' }));
-    setPage(1);
+    
   };
 
   // ---------- Tanlash ----------
@@ -221,6 +221,7 @@ const Groups = () => {
 
   // ---------- Amallar ----------
   const handleSubmit = ({ group, mainId, supportIds }) => {
+    if (form.group ? !canEdit : !canCreate) return;
     if (form.group) {
       update(group.code, group);
       toast.success(`${group.code} guruhi saqlandi`);
@@ -228,13 +229,14 @@ const Groups = () => {
       add(group);
       toast.success(`${group.code} guruhi qo‘shildi`);
       setSort({ key: 'code', dir: 'asc' });
-      setPage(1);
+      
     }
     applyTeam(group.code, mainId, supportIds);
     setForm({ open: false, group: null });
   };
 
   const handleAssign = ({ mainId, supportIds }) => {
+    if (!canEdit) return;
     const snap = snapshotTeams([assignGroup.code]);
     applyTeam(assignGroup.code, mainId, supportIds);
     toast.success(`${assignGroup.code}: ustozlar yangilandi`, { action: { label: 'Qaytarish', onClick: () => restoreTeams(snap) } });
@@ -253,6 +255,7 @@ const Groups = () => {
   };
 
   const confirmDelete = () => {
+    if (!canDelete || !toDelete) return;
     const codes = toDelete.map((g) => g.code);
     const snap = snapshotTeams(codes);
     const removed = remove(codes);
@@ -270,6 +273,7 @@ const Groups = () => {
   };
 
   const changeStatus = (codes, status) => {
+    if (!canEdit) return;
     const list = groups.filter((g) => codes.includes(g.code));
     if (status === 'archived') {
       const blocked = list.filter((g) => studentTotal(g.code) > 0);
@@ -295,6 +299,7 @@ const Groups = () => {
   };
 
   const exportCsv = () => {
+    if (!canExport) return;
     const source = selected.size ? groups.filter((g) => selected.has(g.code)) : filtered;
     const header = ['Guruh', 'Kurs', 'Kunlar va vaqt', 'Xona', 'Asosiy ustoz', 'Qo‘shimcha ustozlar', 'Faol talabalar', 'Sig‘im', 'Holati', 'Boshlangan sana'];
     const body = source.map((g) => {
@@ -316,7 +321,7 @@ const Groups = () => {
     { label: 'Faollashtirish', icon: Play, hidden: g.status === 'active', onClick: () => changeStatus([g.code], 'active') },
     { label: 'Arxivga o‘tkazish', icon: Archive, hidden: g.status === 'archived', onClick: () => changeStatus([g.code], 'archived') },
     { label: 'O‘chirish', icon: Trash2, tone: 'danger', divider: true, onClick: () => requestDelete([g]) },
-  ];
+  ].filter((item) => item.icon === Eye || (item.icon === Pencil && canEdit) || (item.icon === UserPlus && canEdit) || (item.icon === Play && canEdit) || (item.icon === Archive && canEdit) || (item.icon === Trash2 && canDelete));
 
   const openCreate = () => setForm({ open: true, group: null });
   const teamOf = (code) => info.get(code)?.team ?? { main: null, support: [] };
@@ -330,12 +335,12 @@ const Groups = () => {
           <p>Guruhlar, dars jadvali va ularga biriktirilgan asosiy hamda qo‘shimcha ustozlar</p>
         </div>
         <div className="page-head__actions">
-          <button type="button" className="btn btn--secondary" onClick={exportCsv} disabled={filtered.length === 0}>
+          {canExport && <button type="button" className="btn btn--secondary" onClick={exportCsv} disabled={filtered.length === 0}>
             <Download size={16} /> Eksport
-          </button>
-          <button type="button" className="btn btn--primary" onClick={openCreate}>
+          </button>}
+          {canCreate && <button type="button" className="btn btn--primary" onClick={openCreate}>
             <Plus size={16} /> Yangi guruh
-          </button>
+          </button>}
         </div>
       </header>
 
@@ -426,7 +431,7 @@ const Groups = () => {
                 ? 'Birinchi guruhni qo‘shib, ustozlarni biriktiring.'
                 : 'Qidiruv yoki filtr shartlariga mos guruh yo‘q. Filtrlarni o‘zgartirib ko‘ring.'}
             </p>
-            {groups.length === 0 ? (
+            {groups.length === 0 && canCreate ? (
               <button type="button" className="btn btn--primary" onClick={openCreate}>
                 <Plus size={16} /> Yangi guruh
               </button>
@@ -514,18 +519,7 @@ const Groups = () => {
           </div>
         )}
 
-        {filtered.length > 0 && (
-          <Pagination
-            page={safePage}
-            pageSize={pageSize}
-            total={filtered.length}
-            onPageChange={(p) => setPage(Math.min(Math.max(1, p), pageCount))}
-            onPageSizeChange={(n) => {
-              setPageSize(n);
-              setPage(1);
-            }}
-          />
-        )}
+        
       </Card>
 
       <GroupFormModal
@@ -556,9 +550,9 @@ const Groups = () => {
         teachers={teachers}
         supportTeachers={supportTeachers}
         onClose={() => setViewCode(null)}
-        onEdit={(g) => setForm({ open: true, group: g })}
-        onAssign={(g) => setAssignCode(g.code)}
-        onDelete={(g) => requestDelete([g])}
+        onEdit={canEdit ? (g) => setForm({ open: true, group: g }) : null}
+        onAssign={canEdit ? (g) => setAssignCode(g.code) : null}
+        onDelete={canDelete ? (g) => requestDelete([g]) : null}
       />
 
       <ConfirmDialog
