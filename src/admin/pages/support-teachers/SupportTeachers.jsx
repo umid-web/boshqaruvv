@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   AlertTriangle,
   ArrowDown,
@@ -67,6 +68,7 @@ const matchesQuery = (p, q) => {
 };
 
 const SupportTeachers = () => {
+  const receptionView = useLocation().pathname.startsWith('/reception');
   const toast = useToast();
   const { supportTeachers: list, add, update, remove, restore, setStatus } = useSupportTeachers();
   // Talabalar faqat o‘qiladi: talabalar soni va to‘lov hisobi shundan olinadi
@@ -244,7 +246,7 @@ const SupportTeachers = () => {
     toast.success(`${source.length} ta qo‘shimcha ustoz CSV ga eksport qilindi`);
   };
 
-  const menuItems = (p) => [
+  const menuItems = (p) => receptionView ? [{ label: 'Profil', icon: Eye, onClick: () => setViewId(p.id) }] : [
     { label: 'Profilni ko‘rish', icon: Eye, onClick: () => setViewId(p.id) },
     { label: 'Tahrirlash', icon: Pencil, onClick: () => setForm({ open: true, person: p }) },
     { label: 'Ishga qaytarish', icon: Play, hidden: p.status === 'active', onClick: () => changeStatus([p.id], 'active') },
@@ -253,10 +255,10 @@ const SupportTeachers = () => {
     { label: 'O‘chirish', icon: Trash2, tone: 'danger', divider: true, onClick: () => setToDelete([p]) },
   ];
 
-  const openCreate = () => setForm({ open: true, person: null });
+  const openCreate = () => { if (!receptionView) setForm({ open: true, person: null }); };
 
   return (
-    <div className="students-page teachers-page support-page">
+    <div className={`students-page teachers-page support-page${receptionView ? ' reception-view' : ''}`}>
       <header className="page-head">
         <div>
           <h1>Qo‘shimcha ustozlar</h1>
@@ -281,7 +283,7 @@ const SupportTeachers = () => {
           icon={AlertTriangle}
           tone="warning"
         />
-        <StatCard title="Oylik to‘lov fondi" value={formatMoney(summary.payFund)} icon={Wallet} tone="danger" />
+        {!receptionView && <StatCard title="Oylik to‘lov fondi" value={formatMoney(summary.payFund)} icon={Wallet} tone="danger" />}
       </section>
 
       <Card className="students-card">
@@ -473,6 +475,8 @@ const SupportTeachers = () => {
       <SupportTeacherDrawer
         person={viewPerson}
         students={students}
+        hideSalary={receptionView}
+        readOnly={receptionView}
         onClose={() => setViewId(null)}
         onEdit={(p) => setForm({ open: true, person: p })}
         onDelete={(p) => setToDelete([p])}

@@ -18,7 +18,7 @@ export default function ReceptionLayout() {
   const role = useMemo(() => loadRoles().find((item) => item.id === roleId), [roleId])
   const visibleSections = navSections.map((section) => ({
     ...section,
-    items: section.items.filter(({ path }) => role?.permissions?.includes(`${path || 'dashboard'}.view`)),
+    items: section.items.filter(({ path }) => path !== 'salaries' && role?.permissions?.includes(`${path || 'dashboard'}.view`)),
   })).filter((section) => section.items.length)
 
   const logout = () => {

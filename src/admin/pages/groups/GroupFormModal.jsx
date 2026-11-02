@@ -238,7 +238,7 @@ const FormBody = ({ group, team, groups, courseNames, teachers, supportTeachers,
           <Field label="Tugash vaqti" required>
             <input type="time" className="input" {...bind('end')} />
           </Field>
-          <Field label="Xona" required error={errors.room}>
+          <Field label="Xona raqami" required error={errors.room} hint="Masalan: 1-xona. Avval kiritilgan xonalarni ro‘yxatdan tanlashingiz mumkin.">
             <input className="input" list="group-rooms" {...bind('room')} placeholder="1-xona" autoComplete="off" />
             <datalist id="group-rooms">{rooms.map((r) => <option key={r} value={r} />)}</datalist>
           </Field>

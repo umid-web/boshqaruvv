@@ -47,9 +47,8 @@ export const loadRoles = () => {
   }
   return roles;
 };
-export const loadUsers = () => (read(USERS_KEY) ?? createDemoUsers()).map((user) =>
-  user.status === 'invited' ? { ...user, status: 'active', note: user.note?.includes('Taklif yuborilgan') ? '' : user.note } : user,
-);
+// Taklif yuborilgan hisob tizimga kira olmaydi; holatni yuklashda faolga ko'tarmang.
+export const loadUsers = () => read(USERS_KEY) ?? createDemoUsers();
 
 const nextUserId = (list) => {
   const max = list.reduce((m, u) => Math.max(m, Number(u.id.replace(/\D/g, '')) || 0), 0);

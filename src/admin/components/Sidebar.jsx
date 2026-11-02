@@ -14,14 +14,15 @@ const Sidebar = ({ open = false, onClose = () => {} }) => {
   const isTeacher = sessionStorage.getItem('educontrol_role') === 'teacher' || pathname.startsWith('/teacher');
   const basePath = isTeacher ? '/teacher' : '/admin';
   const role = loadRoles().find((item) => item.id === sessionStorage.getItem('educontrol_role'));
-  const teacherModules = new Set(['', 'students', 'schedule', 'payments', 'salaries']);
+  const isSalaryAdmin = ['admin', 'owner'].includes(role?.id);
+  const teacherModules = new Set(['', 'students', 'schedule', 'payments']);
   const sections = navSections.map((section) => ({
     ...section,
     items: section.items.filter(({ path }) => {
       const module = path || 'dashboard';
+      if (module === 'salaries' && !isSalaryAdmin) return false;
       if (isTeacher) return teacherModules.has(path) && role?.permissions?.includes(`${module}.view`);
-      if (sessionStorage.getItem('educontrol_role') === 'reception') return role?.permissions?.includes(`${module}.view`);
-      return true;
+      return role?.permissions?.includes(`${module}.view`);
     }),
   })).filter((section) => section.items.length);
   const orgName = settings?.org?.name?.trim() || 'EduControl Pro';

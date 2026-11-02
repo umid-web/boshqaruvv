@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { AlertTriangle, CalendarDays, CalendarCheck, Clock3, DoorOpen, Layers, MapPin } from 'lucide-react';
 import StatCard from '../../components/StatCard';
@@ -40,9 +40,22 @@ const Schedule = () => {
   const [selectedDay, setSelectedDay] = useState(todayDay);
   const [selectedTime, setSelectedTime] = useState('09:00');
   const [editCode, setEditCode] = useState(null);
+  const [roomNumber, setRoomNumber] = useState('');
+  const [registeredRooms, setRegisteredRooms] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('edu-schedule-rooms-v1'));
+      return Array.isArray(saved) ? saved.filter((room) => typeof room === 'string') : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    try { localStorage.setItem('edu-schedule-rooms-v1', JSON.stringify(registeredRooms)); } catch { /* local storage unavailable */ }
+  }, [registeredRooms]);
 
   const activeGroups = useMemo(() => groups.filter((group) => group.status === 'active'), [groups]);
-  const rooms = useMemo(() => [...new Set(groups.map((group) => group.room).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'uz', { numeric: true })), [groups]);
+  const rooms = useMemo(() => [...new Set([...groups.map((group) => group.room), ...registeredRooms].filter(Boolean))].sort((a, b) => a.localeCompare(b, 'uz', { numeric: true })), [groups, registeredRooms]);
   const scheduleTimes = useMemo(() => [...new Set(activeGroups.map((group) => group.start))].sort(), [activeGroups]);
   const teams = useMemo(() => new Map(groups.map((group) => [group.code, getGroupTeam(group.code, teachers, supportTeachers)])), [groups, teachers, supportTeachers]);
   const colorOf = useMemo(() => {
@@ -78,6 +91,20 @@ const Schedule = () => {
     .filter((group) => !q || `${group.code} ${group.course} ${group.room} ${teams.get(group.code)?.main?.lastName ?? ''}`.toLocaleLowerCase('uz').includes(q))
     .sort((a, b) => a.code.localeCompare(b.code, 'uz'));
   const editGroup = groups.find((group) => group.code === editCode) ?? null;
+
+  const addRoom = (event) => {
+    event.preventDefault();
+    const value = roomNumber.trim();
+    if (!value) return;
+    const room = /^\d+$/.test(value) ? `${value}-xona` : value;
+    if (rooms.some((existing) => existing.toLocaleLowerCase('uz') === room.toLocaleLowerCase('uz'))) {
+      toast.error(`${room} ro‘yxatda bor`);
+      return;
+    }
+    setRegisteredRooms((list) => [...list, room]);
+    setRoomNumber('');
+    toast.success(`${room} qo‘shildi`);
+  };
 
   const handleSave = (patch) => {
     if (!canEdit) return;
@@ -123,13 +150,15 @@ const Schedule = () => {
               {weekDates.map((date) => {
                 const weekday = date.getDay();
                 const lessons = getCellLessons(weekday, time);
-                return <div className={`schedule-calendar__cell${weekday === day ? ' is-selected' : ''}`} key={`${weekday}-${time}`}>
+                return <div className={`schedule-calendar__cell${weekday === day ? ' is-selected' : ''}${lessons.length > 1 ? ' has-multiple-lessons' : ''}`} key={`${weekday}-${time}`}>
+                  {lessons.length > 1 && <span className="schedule-cell-count">{lessons.length} ta dars</span>}
                   {lessons.map((group) => {
                     const main = teams.get(group.code)?.main;
-                    const lesson = <><span className="schedule-event__range">{group.start}–{group.end}</span><strong>{group.course}</strong><span className="schedule-event__group">{group.code}</span><span className="schedule-event__room"><MapPin size={12}/>{group.room}</span><span className="schedule-event__teacher">{main ? `${main.lastName} ${main.firstName}` : 'Ustoz biriktirilmagan'}</span></>;
+                    const teacherName = main ? `${main.lastName} ${main.firstName}` : 'Ustoz biriktirilmagan';
+                    const lesson = <><span className="schedule-event__range">{group.start}–{group.end}</span><strong>{group.course}</strong><span className="schedule-event__meta">{group.code}<span aria-hidden="true"> · </span><MapPin size={11}/>{group.room}</span></>;
                     return canEdit
-                      ? <button type="button" className={`schedule-event schedule-event--${colorOf(group.course)}`} key={group.code} onClick={() => setEditCode(group.code)}>{lesson}</button>
-                      : <article className={`schedule-event schedule-event--${colorOf(group.course)}`} key={group.code}>{lesson}</article>;
+                      ? <button type="button" title={`${group.course} · ${group.code} · ${group.room} · ${teacherName}`} className={`schedule-event schedule-event--${colorOf(group.course)}`} key={group.code} onClick={() => setEditCode(group.code)}>{lesson}</button>
+                      : <article title={`${group.course} · ${group.code} · ${group.room} · ${teacherName}`} className={`schedule-event schedule-event--${colorOf(group.course)}`} key={group.code}>{lesson}</article>;
                   })}
                 </div>;
               })}
@@ -139,6 +168,11 @@ const Schedule = () => {
         </Card>
 
         <Card className="room-availability-card" title="Bo‘sh xonalar" subtitle="Tanlangan kun va vaqt kesimida">
+          {canEdit && <form className="schedule-room-form" onSubmit={addRoom}>
+            <label className="field"><span className="field__label">Xona raqami</span><input className="input" value={roomNumber} onChange={(event) => setRoomNumber(event.target.value)} placeholder="Masalan: 4" /></label>
+            <button type="submit" className="btn btn--primary btn--sm" disabled={!roomNumber.trim()}>Xona qo‘shish</button>
+          </form>}
+          <p className="schedule-room-count">Jami xonalar: <strong>{formatNumber(rooms.length)}</strong></p>
           <div className="room-picker__days">{SCHEDULE_DAYS.map((weekday) => <button key={weekday.value} type="button" className={selectedDay === weekday.value ? 'is-active' : ''} onClick={() => setSelectedDay(weekday.value)}>{weekday.short}</button>)}</div>
           <div className="room-picker__fields"><label className="field"><span className="field__label">Boshlanish vaqti</span><select className="input" value={selectedTime} onChange={(event) => setSelectedTime(event.target.value)}>{TIME_OPTIONS.map((time) => <option key={time}>{time}</option>)}</select></label><label className="field"><span className="field__label">Davomiyligi</span><select className="input" value={duration} onChange={(event) => setDuration(Number(event.target.value))}><option value={60}>1 soat</option><option value={90}>1 soat 30 daqiqa</option><option value={120}>2 soat</option></select></label></div>
           <div className="room-availability__period"><Clock3 size={15}/>{DAY_NAMES[selectedDay]}, {selectedTime}–{toTime(toMinutes(selectedTime) + Number(duration))}</div>
@@ -149,7 +183,7 @@ const Schedule = () => {
 
       <div className="schedule-legend" aria-label="Kurs ranglari">{courses.filter((course) => course.status === 'active').map((course) => <span className="schedule-legend__item" key={course.id} style={{ '--schedule-accent': `var(--${course.color})` }}>{course.name}</span>)}</div>
 
-      <LessonEditModal group={editGroup} groups={groups} teachers={teachers} supportTeachers={supportTeachers} onClose={() => setEditCode(null)} onSubmit={handleSave}/>
+      <LessonEditModal group={editGroup} groups={groups} rooms={rooms} teachers={teachers} supportTeachers={supportTeachers} onClose={() => setEditCode(null)} onSubmit={handleSave}/>
     </div>
   );
 };

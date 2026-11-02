@@ -142,3 +142,9 @@
 
   strong { font-size: 1.05rem; color: var(--success); font-variant-numeric: tabular-nums; }
 }
+
+.reception-view .data-table th:nth-last-child(2),
+.reception-view .data-table td:nth-last-child(2) { display: none; }
+.reception-view .data-table__check,
+.reception-view .bulk-bar,
+.reception-view .page-head__actions .btn--primary { display: none !important; }

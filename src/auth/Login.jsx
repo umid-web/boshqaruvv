@@ -11,7 +11,7 @@ import {
   UserRound,
 } from 'lucide-react'
 import './Login.scss'
-import { loadUsers, loadRoles } from '../admin/pages/users-roles/usersStore'
+import { loadUsers } from '../admin/pages/users-roles/usersStore'
 import { loadTeachers } from '../admin/pages/teachers/teachersStore'
 import { verifyPassword } from './passwords'
 

@@ -2,6 +2,8 @@
 
 React 19 + Vite + React Router + Recharts + SCSS.
 
+> **Demo loyiha:** hozircha backend yo'q; ma'lumotlar brauzerning `localStorage` ida saqlanadi, kirish sessiyasi `sessionStorage` da yuritiladi. Bu modelni haqiqiy foydalanuvchi ma'lumotlari yoki ommaviy internetdagi ishlab chiqarish muhiti uchun xavfsizlik chegarasi deb hisoblamang. Ishlab chiqarishga chiqarishdan oldin server tomondagi autentifikatsiya, ruxsat tekshiruvi, ma'lumotlar bazasi, parolni tiklash/taklif yuborish va audit logini ulang.
+
 ## Ishga tushirish
 
 ```bash

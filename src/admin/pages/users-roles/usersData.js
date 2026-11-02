@@ -180,12 +180,12 @@ export const normalizeRoles = (roles) => {
       tone: r.tone ?? 'primary',
       system: Boolean(r.system),
       locked: r.id === 'owner',
-      permissions: r.id === 'owner' ? ALL_PERMISSIONS : (r.permissions ?? []).filter((p) => VALID_PERMISSIONS.has(p)),
+      permissions: r.id === 'owner' ? ALL_PERMISSIONS : (Array.isArray(r.permissions) ? r.permissions : []).filter((p) => VALID_PERMISSIONS.has(p)),
     }));
   return cleaned.some((r) => r.id === 'owner') ? cleaned : [...createDefaultRoles().filter((r) => r.id === 'owner'), ...cleaned];
 };
 
-export const roleHas = (role, moduleKey, action = 'view') => Boolean(role?.permissions.includes(permKey(moduleKey, action)));
+export const roleHas = (role, moduleKey, action = 'view') => Boolean(role?.permissions?.includes(permKey(moduleKey, action)));
 
 /** Rolning ruxsatlari bo‘limlar bo‘yicha: profil panelida ko‘rsatish uchun. */
 export const summarizePermissions = (role) => {
@@ -203,6 +203,7 @@ export const summarizePermissions = (role) => {
 /* ============ Foydalanuvchilar ============ */
 export const USER_STATUSES = {
   active: { label: 'Faol', tone: 'success' },
+  invited: { label: 'Taklif yuborilgan', tone: 'warning' },
   blocked: { label: 'Bloklangan', tone: 'danger' },
 };
 export const USER_STATUS_OPTIONS = Object.entries(USER_STATUSES).map(([value, { label }]) => ({ value, label }));

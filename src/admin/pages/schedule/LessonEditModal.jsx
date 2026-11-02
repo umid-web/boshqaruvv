@@ -26,7 +26,7 @@ const Field = ({ label, error, hint, children }) => (
  *  – bir xonada bir vaqtda ikkita dars bo‘lmasin;
  *  – asosiy va qo‘shimcha ustozlar shu vaqtda boshqa guruhda dars o‘tmasin (yoki ish kunlariga mos bo‘lsin).
  */
-const Body = ({ group, groups, teachers, supportTeachers, onClose, onSubmit }) => {
+const Body = ({ group, groups, rooms: knownRooms = [], teachers, supportTeachers, onClose, onSubmit }) => {
   const toast = useToast();
   const team = getGroupTeam(group.code, teachers, supportTeachers);
   const [form, setForm] = useState({ days: group.days, start: group.start, end: group.end, room: group.room });
@@ -63,7 +63,7 @@ const Body = ({ group, groups, teachers, supportTeachers, onClose, onSubmit }) =
     onSubmit({ days: draft.days, start: draft.start, end: draft.end, room: draft.room });
   };
 
-  const rooms = [...new Set(groups.map((g) => g.room))];
+  const rooms = [...new Set([...groups.map((g) => g.room), ...knownRooms])];
 
   return (
     <Modal
@@ -107,7 +107,7 @@ const Body = ({ group, groups, teachers, supportTeachers, onClose, onSubmit }) =
             <input type="time" className="input" value={form.end} onChange={(e) => set('end', e.target.value)} />
           </Field>
           <div className="student-form__wide">
-            <Field label="Xona" error={errors.room}>
+            <Field label="Xona raqami" error={errors.room}>
               <input className="input" list="lesson-rooms" value={form.room} onChange={(e) => set('room', e.target.value)} autoComplete="off" />
               <datalist id="lesson-rooms">{rooms.map((r) => <option key={r} value={r} />)}</datalist>
             </Field>

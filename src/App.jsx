@@ -56,6 +56,22 @@ function RequireTeacherPermission({ module, children }) {
   return children
 }
 
+function RequireAdminPermission({ module, children }) {
+  const roleId = sessionStorage.getItem('educontrol_role');
+  const role = loadRoles().find((item) => item.id === roleId);
+  if (module === 'salaries' && !['admin', 'owner'].includes(roleId)) {
+    const firstAllowed = role?.permissions?.find((permission) => permission.endsWith('.view') && permission !== 'salaries.view')?.split('.')[0];
+    const destination = firstAllowed === 'activity' ? 'activity-log' : firstAllowed;
+    return <Navigate to={destination ? `/admin/${destination}` : '/login'} replace />;
+  }
+  if (!role?.permissions?.includes(`${module}.view`)) {
+    const firstAllowed = role?.permissions?.find((permission) => permission.endsWith('.view'))?.split('.')[0];
+    const destination = firstAllowed === 'activity' ? 'activity-log' : firstAllowed;
+    return <Navigate to={destination ? `/admin/${destination}` : '/login'} replace />;
+  }
+  return children;
+}
+
 // Login holatini tekshirish
 function RequireAuth({ children }) {
   const isLoggedIn = sessionStorage.getItem('educontrol_logged_in') === 'true'
@@ -108,7 +124,7 @@ function App() {
                 />
 
                 {/* Bosh sahifa */}
-                <Route path="/" element={<Navigate to={sessionStorage.getItem('educontrol_role') === 'teacher' ? '/teacher' : '/admin'} replace />} />
+                <Route path="/" element={<Navigate to={sessionStorage.getItem('educontrol_role') === 'teacher' ? '/teacher' : sessionStorage.getItem('educontrol_role') === 'reception' ? '/reception' : '/admin'} replace />} />
                 <Route path="/account/security" element={<RequireAuth><AccountSecurity /></RequireAuth>} />
                 <Route path="/teacher" element={<RequireAuth><AdminLayout /></RequireAuth>}>
                   <Route index element={loadRoles().find((role) => role.id === 'teacher')?.permissions?.includes('dashboard.view') ? <TeacherPages view="dashboard" /> : <Navigate to="students" replace />} />
@@ -122,12 +138,21 @@ function App() {
                 <Route path="/reception" element={<RequireAuth><ReceptionLayout /></RequireAuth>}>
                   <Route index element={<RequireReceptionPermission module="dashboard"><Reception /></RequireReceptionPermission>} />
                   <Route path="students" element={<RequireReceptionPermission module="students"><ReceptionStudents /></RequireReceptionPermission>} />
+                  <Route path="teachers" element={<RequireReceptionPermission module="teachers"><Teachers /></RequireReceptionPermission>} />
+                  <Route path="support-teachers" element={<RequireReceptionPermission module="support-teachers"><SupportTeachers /></RequireReceptionPermission>} />
                   <Route path="groups" element={<RequireReceptionPermission module="groups"><ReceptionGroups /></RequireReceptionPermission>} />
                   <Route path="courses" element={<RequireReceptionPermission module="courses"><ReceptionCourses /></RequireReceptionPermission>} />
                   <Route path="schedule" element={<RequireReceptionPermission module="schedule"><ReceptionSchedule /></RequireReceptionPermission>} />
                   <Route path="attendance" element={<RequireReceptionPermission module="attendance"><ReceptionAttendance /></RequireReceptionPermission>} />
                   <Route path="payments" element={<RequireReceptionPermission module="payments"><ReceptionPayments /></RequireReceptionPermission>} />
+                  <Route path="finance" element={<RequireReceptionPermission module="finance"><Finance /></RequireReceptionPermission>} />
                   <Route path="debts" element={<RequireReceptionPermission module="debts"><Finance view="debts" /></RequireReceptionPermission>} />
+                  <Route path="expenses" element={<RequireReceptionPermission module="expenses"><Expenses /></RequireReceptionPermission>} />
+                  <Route path="reports" element={<RequireReceptionPermission module="reports"><Reports /></RequireReceptionPermission>} />
+                  <Route path="notifications" element={<RequireReceptionPermission module="notifications"><Notifications /></RequireReceptionPermission>} />
+                  <Route path="users-roles" element={<RequireReceptionPermission module="users-roles"><UsersRoles /></RequireReceptionPermission>} />
+                  <Route path="settings" element={<RequireReceptionPermission module="settings"><Settings /></RequireReceptionPermission>} />
+                  <Route path="activity-log" element={<RequireReceptionPermission module="activity"><ActivityLog /></RequireReceptionPermission>} />
                   <Route path="chat" element={<Chat />} />
                   <Route path="*" element={<Navigate to="/reception" replace />} />
                 </Route>
@@ -144,27 +169,27 @@ function App() {
                   {/* /admin ochilganda boshqaruv paneli ochiladi */}
                   <Route index element={<Navigate to="dashboard" replace />} />
 
-                  <Route path="dashboard" element={<Dashboard />} />
-                  <Route path="students" element={<Students />} />
-                  <Route path="teachers" element={<Teachers />} />
+                  <Route path="dashboard" element={<RequireAdminPermission module="dashboard"><Dashboard /></RequireAdminPermission>} />
+                  <Route path="students" element={<RequireAdminPermission module="students"><Students /></RequireAdminPermission>} />
+                  <Route path="teachers" element={<RequireAdminPermission module="teachers"><Teachers /></RequireAdminPermission>} />
                   <Route
                     path="support-teachers"
-                    element={<SupportTeachers />}
+                    element={<RequireAdminPermission module="support-teachers"><SupportTeachers /></RequireAdminPermission>}
                   />
-                  <Route path="courses" element={<Courses />} />
-                  <Route path="groups" element={<Groups />} />
-                  <Route path="schedule" element={<Schedule />} />
-                  <Route path="attendance" element={<Attendance />} />
-                  <Route path="finance" element={<Finance />} />
-                  <Route path="payments" element={<Payments />} />
-                  <Route path="debts" element={<Finance view="debts" />} />
-                  <Route path="expenses" element={<Expenses />} />
-                  <Route path="salaries" element={<Salaries />} />
-                  <Route path="settings" element={<Settings />} />
-                  <Route path="reports" element={<Reports />} />
-                  <Route path="users-roles" element={<UsersRoles />} />
-                  <Route path="notifications" element={<Notifications />} />
-                  <Route path="activity-log" element={<ActivityLog />} />
+                  <Route path="courses" element={<RequireAdminPermission module="courses"><Courses /></RequireAdminPermission>} />
+                  <Route path="groups" element={<RequireAdminPermission module="groups"><Groups /></RequireAdminPermission>} />
+                  <Route path="schedule" element={<RequireAdminPermission module="schedule"><Schedule /></RequireAdminPermission>} />
+                  <Route path="attendance" element={<RequireAdminPermission module="attendance"><Attendance /></RequireAdminPermission>} />
+                  <Route path="finance" element={<RequireAdminPermission module="finance"><Finance /></RequireAdminPermission>} />
+                  <Route path="payments" element={<RequireAdminPermission module="payments"><Payments /></RequireAdminPermission>} />
+                  <Route path="debts" element={<RequireAdminPermission module="debts"><Finance view="debts" /></RequireAdminPermission>} />
+                  <Route path="expenses" element={<RequireAdminPermission module="expenses"><Expenses /></RequireAdminPermission>} />
+                  <Route path="salaries" element={<RequireAdminPermission module="salaries"><Salaries /></RequireAdminPermission>} />
+                  <Route path="settings" element={<RequireAdminPermission module="settings"><Settings /></RequireAdminPermission>} />
+                  <Route path="reports" element={<RequireAdminPermission module="reports"><Reports /></RequireAdminPermission>} />
+                  <Route path="users-roles" element={<RequireAdminPermission module="users-roles"><UsersRoles /></RequireAdminPermission>} />
+                  <Route path="notifications" element={<RequireAdminPermission module="notifications"><Notifications /></RequireAdminPermission>} />
+                  <Route path="activity-log" element={<RequireAdminPermission module="activity"><ActivityLog /></RequireAdminPermission>} />
                   <Route path="chat" element={<Chat />} />
 
                   <Route path="*" element={<NotFound />} />

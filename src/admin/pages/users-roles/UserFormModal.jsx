@@ -18,7 +18,7 @@ const EMPTY = {
 };
 
 const toForm = (user, defaultRoleId) =>
-  user ? { ...EMPTY, ...user, status: user.status === 'invited' ? 'active' : user.status, login: user.login || user.email?.split('@')[0] || '', phone: maskPhoneInput(user.phone) } : { ...EMPTY, roleId: defaultRoleId };
+  user ? { ...EMPTY, ...user, login: user.login || user.email?.split('@')[0] || '', phone: maskPhoneInput(user.phone) } : { ...EMPTY, roleId: defaultRoleId };
 
 const Field = ({ label, required, error, hint, children }) => (
   <label className={error ? 'field has-error' : 'field'}>

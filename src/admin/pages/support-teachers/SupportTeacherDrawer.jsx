@@ -29,7 +29,7 @@ const Row = ({ icon: Icon, label, children }) => (
 );
 
 /** Qo‘shimcha ustoz profili — yon panel: ma'lumotlar, haftalik jadval, guruhlar va to‘lov hisobi. */
-const SupportTeacherDrawer = ({ person, students, onClose, onEdit, onDelete }) => {
+const SupportTeacherDrawer = ({ person, students, onClose, onEdit, onDelete, hideSalary = false, readOnly = false }) => {
   const mainTeachers = useMemo(loadTeachers, []);
 
   const timetable = useMemo(() => {
@@ -59,12 +59,12 @@ const SupportTeacherDrawer = ({ person, students, onClose, onEdit, onDelete }) =
       title="Qo‘shimcha ustoz profili"
       footer={
         <>
-          <button type="button" className="btn btn--ghost" onClick={() => onDelete(person)} style={{ marginRight: 'auto', color: 'var(--danger)' }}>
+          {!readOnly && <button type="button" className="btn btn--ghost" onClick={() => onDelete(person)} style={{ marginRight: 'auto', color: 'var(--danger)' }}>
             <Trash2 size={16} /> O‘chirish
-          </button>
-          <button type="button" className="btn btn--primary" onClick={() => onEdit(person)}>
+          </button>}
+          {!readOnly && <button type="button" className="btn btn--primary" onClick={() => onEdit(person)}>
             <Edit3 size={16} /> Tahrirlash
-          </button>
+          </button>}
         </>
       }
     >
@@ -165,7 +165,7 @@ const SupportTeacherDrawer = ({ person, students, onClose, onEdit, onDelete }) =
           )}
         </section>
 
-        <section className="profile__section">
+        {!hideSalary && <section className="profile__section">
           <h4>To‘lov hisobi <span className="badge badge--muted">Taxminiy</span></h4>
           <Row icon={Banknote} label="Hisoblash usuli">
             {payLabel} · {formatSom(person.payValue)}
@@ -177,7 +177,7 @@ const SupportTeacherDrawer = ({ person, students, onClose, onEdit, onDelete }) =
             <span>Oylik to‘lov</span>
             <strong>{formatSom(stats.pay)}</strong>
           </div>
-        </section>
+        </section>}
       </div>
     </Modal>
   );
